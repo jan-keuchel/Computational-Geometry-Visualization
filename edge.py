@@ -1,11 +1,15 @@
 # pyright: reportMissingImports=false
 import constants
-from point import Point
+from node import Node
 import pygame
 
 class Edge:
-    def __init__(self, id:int, a:Point, b:Point) -> None:
-        self.id = id
+    _next_id = 0
+
+    def __init__(self, a:Node, b:Node) -> None:
+        self.id = Edge._next_id
+        Edge._next_id += 1
+
         self.a  = a
         self.b  = b
 
