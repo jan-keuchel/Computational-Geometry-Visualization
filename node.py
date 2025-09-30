@@ -59,14 +59,8 @@ class Node:
 
     def draw(self, screen, font, draw_compact=False) -> None:
         if draw_compact:
-            w = 8
+            w = 6
             pygame.gfxdraw.box(
-                screen,
-                (self.x - w/2, self.y - w/2,
-                 w, w),
-                constants.RED
-            )
-            pygame.gfxdraw.rectangle(
                 screen,
                 (self.x - w/2, self.y - w/2,
                  w, w),
