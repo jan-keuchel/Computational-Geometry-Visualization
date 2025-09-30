@@ -5,8 +5,12 @@ import pygame
 import pygame.gfxdraw
 
 class Node:
-    def __init__(self, id: int, p:Point) -> None:
-        self.id = id
+    _next_id = 0
+
+    def __init__(self, p:Point) -> None:
+        self.id = Node._next_id
+        Node._next_id += 1
+
         self.x  = p.x
         self.y  = p.y
 
