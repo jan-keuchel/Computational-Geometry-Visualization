@@ -1,4 +1,7 @@
+# pyright: reportMissingImports=false
+import pygame
 
+font   = pygame.font.SysFont('Hack Nerd Font', 18)
 
 BLACK   = (0, 0, 0)
 WHITE   = (255, 255, 255)
