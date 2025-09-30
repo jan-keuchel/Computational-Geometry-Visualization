@@ -59,13 +59,8 @@ class Node:
 
     def draw(self, screen, draw_compact=False) -> None:
         if draw_compact:
-            w = 6
-            pygame.gfxdraw.box(
-                screen,
-                (self.x - w/2, self.y - w/2,
-                 w, w),
-                constants.FOREGROUND
-            )
+            w = 8
+            pygame.gfxdraw.box(screen, (self.x - w/2, self.y - w/2, w, w), constants.BLUE)
         else:
             pygame.gfxdraw.filled_circle(screen, self.x, self.y, 15, constants.BLUE)
             pygame.gfxdraw.aacircle(screen, self.x, self.y, 15, constants.FOREGROUND)
