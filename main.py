@@ -1,15 +1,18 @@
 # pyright: reportMissingImports=false
-from node import Node
 import pygame
+pygame.init()
+pygame.font.init()
+
+import constants
+from graph import Graph
 from window import Window
 
+
 def main():
-    pygame.init()
-    pygame.font.init()
 
     window = Window(800, 600)
-
-    n = Node(9, 100, 100)
+    g = Graph()
+    g.init_graph()
 
     running = True
     while running:
@@ -18,7 +21,7 @@ def main():
                 running = False
 
         window.clear()
-        n.draw(window.screen, window.font)
+        g.draw(window.screen)
         window.render()
 
     pygame.font.quit()
