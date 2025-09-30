@@ -57,7 +57,7 @@ class Node:
         self.edges[neighbor] = edge
         return True
 
-    def draw(self, screen, font, draw_compact=False) -> None:
+    def draw(self, screen, draw_compact=False) -> None:
         if draw_compact:
             w = 6
             pygame.gfxdraw.box(
@@ -70,7 +70,7 @@ class Node:
             pygame.gfxdraw.filled_circle(screen, self.x, self.y, 15, constants.BLUE)
             pygame.gfxdraw.aacircle(screen, self.x, self.y, 15, constants.FOREGROUND)
 
-            text_surface = font.render(f"{self.id}", True, (255, 240, 250))
+            text_surface = constants.font.render(f"{self.id}", True, (255, 240, 250))
             text_rect = text_surface.get_rect(center=(self.x, self.y))
             screen.blit(text_surface, text_rect)
 
