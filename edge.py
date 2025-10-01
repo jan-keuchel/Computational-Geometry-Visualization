@@ -25,8 +25,6 @@ class Edge:
         else:
             self.weight: float = weight
 
-        print(f"id={self.id}, weight={self.weight}")
-
 
     def draw(self, screen) -> None:
         pygame.draw.aaline(screen, 
