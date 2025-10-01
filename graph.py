@@ -1,6 +1,7 @@
 from typing import List
 
 import constants
+import math_helper
 from edge import Edge
 from node import Node
 from point import Point
@@ -27,9 +28,27 @@ class Graph:
         Node._add_edge(self.V[1], self.V[2], self.E[1])
 
     def generate_random(self, num_vertices=10) -> None:
+
+        # Guarantee minimal distance of MIN_NODE_OFFSET 
+        # between every pair of nodes.
         for _ in range(num_vertices):
+            too_close = False
             x: int = random.randint(30, 770)
             y: int = random.randint(30, 570)
+            for v in self.V:
+                if math_helper.distance(Point(x, y), v.p) < constants.MIN_NODE_OFFSET:
+                    too_close = True
+                    break
+
+            while too_close:
+                too_close = False
+                x = random.randint(30, 770)
+                y = random.randint(30, 570)
+                for v in self.V:
+                    if math_helper.distance(Point(x, y), v.p) < constants.MIN_NODE_OFFSET:
+                        too_close = True
+                        break
+
             self.V.append(Node(Point(x, y)))
 
     def generate_fully_connected(self, num_vertices=10) -> None:
