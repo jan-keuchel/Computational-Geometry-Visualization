@@ -21,9 +21,11 @@ class Edge:
         self.is_directed = is_directed
 
         if weight == None:
-            self.weight = math_helper.distance(a.p, b.p)
+            self.weight: float = math_helper.distance(a.p, b.p)
         else:
-            self.weight = weight
+            self.weight: float = weight
+
+        print(f"id={self.id}, weight={self.weight}")
 
 
     def draw(self, screen) -> None:

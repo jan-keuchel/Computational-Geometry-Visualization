@@ -46,7 +46,7 @@ class Graph:
             for j in range(i + 1, len(self.V)):
                 u = self.V[i]
                 v = self.V[j]
-                self.E.append(Edge(u, v, False))
+                self.E.append(Edge(u, v, is_directed=False))
 
     def draw(self, screen, draw_compact=False) -> None:
         for e in self.E:
