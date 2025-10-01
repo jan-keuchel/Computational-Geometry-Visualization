@@ -23,9 +23,10 @@ This is because I do not know about the algorithms, yet.
 To document the progress I've done so far and list some other things I need to do in order to visualize certain algorithms, here's a list of things I'm working on:
 - [ ] Generation of planar graphs without intersecting edges
     - [x] Fully connected graph
-- Convex Hulls
+- [ ] Convex Hulls
     - [ ] Brute force approach
     - [ ] Graham's scan
+    - [ ] Gift wrapping (Jarvis March)
 - [ ] Line Segment Intersection
 - [ ] Triangulation
 - [ ] Orthogonal Range Searching
@@ -39,3 +40,8 @@ To document the progress I've done so far and list some other things I need to d
          - [ ] start simulation
 - [ ] Others
     - [x] MST, Prims
+
+### Questions
+- [ ] How do I properly visualize the algorithms?
+    - [ ] Short break after each step of the algorithm to draw new state
+    - [ ] How do I manage the colors of edges, nodes, etc? Via intern state of extern color?
