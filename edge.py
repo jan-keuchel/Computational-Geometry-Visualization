@@ -26,10 +26,14 @@ class Edge:
             self.weight: float = weight
 
 
-    def draw(self, screen) -> None:
+    def draw(self, screen, color=None, width=1) -> None:
+
+        if color == None:
+            color = constants.EDGE_COLOR
         pygame.draw.aaline(screen, 
-                           constants.FOREGROUND,
+                           color,
                            (self.a.p.x, self.a.p.y), 
-                           (self.b.p.x, self.b.p.y))
+                           (self.b.p.x, self.b.p.y),
+                           width)
 
 

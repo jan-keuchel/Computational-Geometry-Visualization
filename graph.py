@@ -48,8 +48,18 @@ class Graph:
                 v = self.V[j]
                 self.E.append(Edge(u, v, is_directed=False))
 
-    def draw(self, screen, draw_compact=False) -> None:
+    def draw(self, screen, edge_col=None, edge_width=1, node_col=None, node_draw_compact=False) -> None:
+        self.draw_edges(screen, edge_col, edge_width)
+        self.draw_nodes(screen, node_col, node_draw_compact)
+
+    def draw_edges(self, screen, color=None, width=1) -> None:
+        if color == None:
+            color = constants.EDGE_COLOR
         for e in self.E:
-            e.draw(screen)
+            e.draw(screen, color, width)
+
+    def draw_nodes(self, screen, color=None, draw_compact=False) -> None:
+        if color == None:
+            color = constants.FOREGROUND
         for v in self.V:
             v.draw(screen, draw_compact)
