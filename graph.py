@@ -16,19 +16,7 @@ class Graph:
         self.V: List[Node] = V if V is not None else []
         self.E: List[Edge] = E if E is not None else []
 
-    def init(self) -> None:
-        self.V.append(Node(Point(100, 100)))
-        self.V.append(Node(Point(300, 180)))
-        self.V.append(Node(Point(150, 250)))
-
-        self.E.append(Edge(self.V[0], self.V[1]))
-        self.E.append(Edge(self.V[1], self.V[2]))
-
-        Node._add_edge(self.V[0], self.V[1], self.E[0])
-        Node._add_edge(self.V[1], self.V[2], self.E[1])
-
-    def generate_random(self, num_vertices=10) -> None:
-
+    def _generate_random_nodes(self, num_vertices=10) -> None:
         # Guarantee minimal distance of MIN_NODE_OFFSET 
         # between every pair of nodes.
         for _ in range(num_vertices):
@@ -52,10 +40,7 @@ class Graph:
             self.V.append(Node(Point(x, y)))
 
     def generate_fully_connected(self, num_vertices=10) -> None:
-        for _ in range(num_vertices):
-            x: int = random.randint(30, 770)
-            y: int = random.randint(30, 570)
-            self.V.append(Node(Point(x, y)))
+        self._generate_random_nodes(num_vertices)
 
         for i in range(len(self.V)):
             for j in range(i + 1, len(self.V)):
