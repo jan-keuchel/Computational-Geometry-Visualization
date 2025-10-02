@@ -63,6 +63,9 @@ class Graph:
         for e in self.E:
             Node.add_edge(e.a, e.b, e)
 
+    def _add_edge(self, e:Edge) -> None:
+        self.E.append(e)
+        Node.add_edge(e.a, e.b, e)
 
     def _gen_fully_connected(self, num_vertices=10) -> None:
         self._generate_random_nodes(num_vertices)
@@ -72,8 +75,7 @@ class Graph:
                 u = self.V[i]
                 v = self.V[j]
                 e = Edge(u, v, is_directed=False)
-                self.E.append(e)
-                Node.add_edge(u, v, e)
+                self._add_edge(e)
 
     def _gen_mst(self, num_vertices=10) -> None:
         self._gen_fully_connected(num_vertices)
@@ -88,7 +90,6 @@ class Graph:
 
         for v in self.V:
             if len(v.edges) == 1: # Nodes of degree 1
-                print(f"Node deg 1 found: {v.id}")
                 u = random.choice(self.V)
                 new_edge = Edge(v, u)
 
@@ -106,9 +107,7 @@ class Graph:
                             found_intersect = True
                             break
 
-                self.E.append(new_edge)
-                Node.add_edge(u, v, new_edge)
-                print(f"new edge: {v.id} ---> {u.id}")
+                self._add_edge(new_edge)
 
     # ------------------------------
     # --------- Rendering ----------
