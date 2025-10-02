@@ -23,6 +23,8 @@ This is because I do not know about the algorithms, yet.
 To document the progress I've done so far and list some other things I need to do in order to visualize certain algorithms, here's a list of things I'm working on:
 - [ ] Generation of planar graphs without intersecting edges
     - [x] Fully connected graph
+    - [x] MST
+    - [x] MST with additional edges on nodes n with originally deg(n) = 1
 - [ ] Convex Hulls
     - [ ] Brute force approach
     - [ ] Graham's scan
