@@ -1,5 +1,6 @@
 # pyright: reportMissingImports=false
 import pygame
+from enum import Enum
 
 font = pygame.font.SysFont('Hack Nerd Font', 18)
 
@@ -8,7 +9,7 @@ WHITE   = (255, 255, 255)
 RED     = (244, 103, 110)
 BLUE    = (67, 97, 238)
 GREEN   = (150, 218, 47)
-ORANGE  = (227, 181, 5)
+ORANGE  = (255, 181, 5)
 
 FOREGROUND = (255, 240, 250)
 BACKGROUND = (30, 30, 35)
@@ -21,3 +22,8 @@ EDGE_COLOR = (180, 160, 190)
 # -----------------------------------
 
 MIN_NODE_OFFSET = 40
+
+class graph_type(Enum):
+    FULLY_CONNECTED             = 0
+    MST_NO_DEG_1                = 1
+    MST                         = 2
