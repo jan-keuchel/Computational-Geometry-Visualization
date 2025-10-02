@@ -34,6 +34,11 @@ class Graph:
         gen(num_vertices)
 
     def _generate_random_nodes(self, num_vertices=10) -> None:
+        """
+        `_generate_random_nodes` generates `num_vertices` nodes
+        at random locations with a minimal pair-wise distance
+        of `constants.MIN_NODE_OFFSET`.
+        """
         # Guarantee minimal distance of MIN_NODE_OFFSET 
         # between every pair of nodes.
         for _ in range(num_vertices):
@@ -90,7 +95,7 @@ class Graph:
                     remaining_nodes.remove(u)
                     break
 
-        self.add_edge(new_edge.a, new_edge.b)
+        self._add_edge(new_edge.a, new_edge.b)
         return True
 
     def _add_random_ni_edge(self) -> bool:
@@ -102,19 +107,39 @@ class Graph:
         return True
 
     def _clear_edges(self) -> None:
+        """
+        `_clear_edges` deletes all edge data stored in the Graph class.
+        Meaning: `Graph.E` is cleared and the adjacency matrix `adj_mat`
+        is emptied.
+        """
         self.E.clear()
         self.adj_mat.clear()
 
     def _set_edges(self, E:List[Edge]) -> None:
+        """
+        `_set_edges` sets the list of edges of the Graph to the provided
+        edges `E` and updates the adjacency matrix accordingly.
+        """
         self.E = E
         for e in self.E:
             self._update_adjacency_matrix(e.a, e.b, e)
 
     def _update_adjacency_matrix(self, a:Node, b:Node, e:Edge) -> None:
+        """
+        `_update_adjacency_matrix` updates on cell of the adjacency
+        matrix with at the proivded index with the proivded edge.
+        """
         self.adj_mat[a.id][b.id] = e
         self.adj_mat[b.id][a.id] = e
 
-    def add_edge(self, a:Node, b:Node) -> bool:
+    def _add_edge(self, a:Node, b:Node) -> bool:
+        """
+        `_add_edge` inserts a new edge into the list of edges `Graph.E`
+        and updates the adjacency matrix.
+        Conditions:
+        - Self-directed eges are ignored.
+        - Egges that are already present are ignored.
+        """
         # No self directed edges
         if a.id == b.id:
             return False
@@ -125,20 +150,25 @@ class Graph:
 
         new_edge = Edge(a, b)
         self.E.append(new_edge)
-        self.adj_mat[a.id][b.id] = new_edge
-        self.adj_mat[b.id][a.id] = new_edge
+        self._update_adjacency_matrix(a, b, new_edge)
 
         return True
         
 
     def _gen_fully_connected(self, num_vertices=10) -> None:
+        """
+        `_gen_fully_connected` generates a fully connected graph.
+        """
         self._generate_random_nodes(num_vertices)
 
         for i in range(len(self.V)):
             for j in range(i + 1, len(self.V)):
-                self.add_edge(self.V[i], self.V[j])
+                self._add_edge(self.V[i], self.V[j])
 
     def _gen_mst(self, num_vertices=10) -> None:
+        """
+        `_gen_mst` generates a minimal spanning tree based on the graphs nodes.
+        """
         self._gen_fully_connected(num_vertices)
 
         mst = mst_prims(self)
@@ -147,6 +177,11 @@ class Graph:
         self._set_edges(mst)
 
     def _gen_mst_no_deg_1(self, num_vertices=10) -> None:
+        """
+        `_gen_mst_no_deg_1` first generates a minimal spanning tree
+        and then adds in additional edges to the nodes that have a
+        degree of 1. The new edges will not intersect with other edges.
+        """
         self._gen_mst(num_vertices)
 
         for v in self.V:
