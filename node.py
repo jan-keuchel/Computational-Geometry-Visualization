@@ -27,7 +27,7 @@ class Node:
 
         if edge.is_directed:
             edge.a._add_edge(edge.b, edge)
-        else:
+        else: 
             edge.a._add_edge(edge.b, edge)
             edge.b._add_edge(edge.a, edge)
 
@@ -50,7 +50,12 @@ class Node:
         have to be updated manually!
         """
 
+        # Wrong direction of directed edge
         if edge.is_directed and edge.a != self:
+            return False
+
+        # Edge already in Dict
+        if neighbor in self.edges:
             return False
 
         self.edges[neighbor] = edge
