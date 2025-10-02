@@ -10,15 +10,13 @@ class Edge:
     def __init__(self, 
                  a:Node,
                  b:Node,
-                 weight=None,
-                 is_directed=False) -> None:
+                 weight=None) -> None:
 
         self.id = Edge._next_id
         Edge._next_id += 1
 
         self.a  = a
         self.b  = b
-        self.is_directed = is_directed
 
         if weight == None:
             self.weight: float = math_helper.distance(a.p, b.p)
