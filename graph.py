@@ -1,6 +1,7 @@
-from typing import List
+from typing import Callable, Dict, List
 
 import constants
+from constants import graph_type
 import math_helper
 from edge import Edge
 from node import Node
@@ -15,6 +16,19 @@ class Graph:
                  E: List[Edge] | None = None) -> None:
         self.V: List[Node] = V if V is not None else []
         self.E: List[Edge] = E if E is not None else []
+
+        self._graph_gen_algos: Dict[graph_type, Callable] = {
+            graph_type.FULLY_CONNECTED: self._gen_fully_connected,
+            graph_type.MST: self._gen_mst,
+            graph_type.MST_NO_DEG_1: self._gen_mst_no_deg_1,
+        }
+
+    # -------------------------------------
+    # --------- Graph Generation ----------
+    # -------------------------------------
+    def generate_graph(self, type: graph_type=graph_type.FULLY_CONNECTED, num_vertices=10):
+        gen = self._graph_gen_algos[type]
+        gen(num_vertices)
 
     def _generate_random_nodes(self, num_vertices=10) -> None:
         # Guarantee minimal distance of MIN_NODE_OFFSET 
@@ -39,14 +53,67 @@ class Graph:
 
             self.V.append(Node(Point(x, y)))
 
-    def generate_fully_connected(self, num_vertices=10) -> None:
+    def _clear_edges(self) -> None:
+        for v in self.V:
+            v.edges.clear()
+        self.E.clear()
+
+    def _set_edges(self, E:List[Edge]) -> None:
+        self.E = E
+        for e in self.E:
+            Node.add_edge(e.a, e.b, e)
+
+
+    def _gen_fully_connected(self, num_vertices=10) -> None:
         self._generate_random_nodes(num_vertices)
 
         for i in range(len(self.V)):
             for j in range(i + 1, len(self.V)):
                 u = self.V[i]
                 v = self.V[j]
-                self.E.append(Edge(u, v, is_directed=False))
+                e = Edge(u, v, is_directed=False)
+                self.E.append(e)
+                Node.add_edge(u, v, e)
+
+    def _gen_mst(self, num_vertices=10) -> None:
+        self._gen_fully_connected(num_vertices)
+
+        from algorithms import mst_prims
+        mst = mst_prims(self)
+
+        self._clear_edges()
+        self._set_edges(mst)
+
+    def _gen_mst_no_deg_1(self, num_vertices=10) -> None:
+        self._gen_mst(num_vertices)
+
+        for v in self.V:
+            if len(v.edges) == 1: # Nodes of degree 1
+                print(f"Node deg 1 found: {v.id}")
+                u = random.choice(self.V)
+                new_edge = Edge(v, u)
+
+                found_intersect = True
+                while found_intersect:
+                    u = random.choice(self.V)
+                    if u == v or u in v.edges:
+                        continue
+
+                    found_intersect = False
+                    new_edge = Edge(v, u)
+
+                    for e in self.E:
+                        if math_helper.line_segment_intersection(new_edge.a.p, new_edge.b.p, e.a.p, e.b.p):
+                            found_intersect = True
+                            break
+
+                self.E.append(new_edge)
+                Node.add_edge(u, v, new_edge)
+                print(f"new edge: {v.id} ---> {u.id}")
+
+    # ------------------------------
+    # --------- Rendering ----------
+    # ------------------------------
 
     def draw(self, screen, edge_col=None, edge_width=1, node_col=None, node_draw_compact=False) -> None:
         self.draw_edges(screen, edge_col, edge_width)
