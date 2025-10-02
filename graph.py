@@ -53,6 +53,51 @@ class Graph:
 
             self.V.append(Node(Point(x, y)))
 
+    def _add_random_ni_edge_from_node(self, n:Node) -> bool:
+        """
+        Adds a random non-intersecting edge to the graph that 
+        starts at `n`. As this is not always possible, the return 
+        value indicates the success of the operation.
+        """
+        if not n in self.V:
+            return False
+
+        remaining_nodes = self.V.copy()
+        remaining_nodes.remove(n)
+
+        u = random.choice(self.V)
+        new_edge = Edge(n, u)
+
+        found_intersect = True
+        while found_intersect:
+            if not remaining_nodes:
+                return False
+
+            u = random.choice(remaining_nodes)
+            if u == n or u in n.edges:
+                remaining_nodes.remove(u)
+                continue
+
+            found_intersect = False
+            new_edge = Edge(n, u)
+
+            for e in self.E:
+                if math_helper.line_segment_intersection(new_edge.a.p, new_edge.b.p, e.a.p, e.b.p):
+                    found_intersect = True
+                    remaining_nodes.remove(u)
+                    break
+
+        self._add_edge(new_edge)
+        return True
+
+    def _add_random_ni_edge(self) -> bool:
+        """
+        Adds a random non-intersecting edge to the graph. As this is not always
+        possible the return value indicates the success of the operation.
+        """
+        # TODO
+        return True
+
     def _clear_edges(self) -> None:
         for v in self.V:
             v.edges.clear()
@@ -90,24 +135,7 @@ class Graph:
 
         for v in self.V:
             if len(v.edges) == 1: # Nodes of degree 1
-                u = random.choice(self.V)
-                new_edge = Edge(v, u)
-
-                found_intersect = True
-                while found_intersect:
-                    u = random.choice(self.V)
-                    if u == v or u in v.edges:
-                        continue
-
-                    found_intersect = False
-                    new_edge = Edge(v, u)
-
-                    for e in self.E:
-                        if math_helper.line_segment_intersection(new_edge.a.p, new_edge.b.p, e.a.p, e.b.p):
-                            found_intersect = True
-                            break
-
-                self._add_edge(new_edge)
+                self._add_random_ni_edge_from_node(v)
 
     # ------------------------------
     # --------- Rendering ----------
