@@ -2,7 +2,7 @@ from typing import Callable, Dict, List
 from collections import defaultdict
 
 import constants
-from constants import graph_type, convex_hull_algos
+from constants import graph_type, convex_hull_algos, mst_algos
 import math_helper
 from edge import Edge
 from node import Node
@@ -26,14 +26,19 @@ class Graph:
             graph_type.MST_NO_DEG_1: self._gen_mst_no_deg_1,
         }
 
+        self._mst_algos: Dict[mst_algos, Callable] = {
+            mst_algos.PRIMS: self._mst_prims,
+        }
+
         self._convex_hull_algos: Dict[convex_hull_algos, Callable] = {
-            convex_hull_algos.BRUTE_FORCE: self._CH_bure_force,
+            convex_hull_algos.BRUTE_FORCE: self._CH_brute_force,
             convex_hull_algos.GRAHAM_SCAN: self._CH_graham_scan,
         }
 
     # -------------------------------------
     # --------- Graph Generation ----------
     # -------------------------------------
+
     def generate_graph(self, type: graph_type=graph_type.FULLY_CONNECTED, num_vertices=10):
         gen = self._graph_gen_algos[type]
         gen(num_vertices)
@@ -67,15 +72,18 @@ class Graph:
             self.V.append(Node(Point(x, y)))
 
 
+    # -------------------------------------
+    # ----------- Convex Hull  ------------
+    # -------------------------------------
 
     def calculate_convex_hull(self, algo:convex_hull_algos) -> List[Node]:
         ch_algo = self._convex_hull_algos[algo]
         return ch_algo()
 
 
-    def _CH_bure_force(self) -> List[Node]:
+    def _CH_brute_force(self) -> List[Node]:
         """
-        `_CH_bure_force` computes the convex hull of the graphs nodes.
+        `_CH_brute_force` computes the convex hull of the graphs nodes.
         This is done by testing for every possible edge, if every other
         node is to the right of said edge. The way the convex hull is
         represented is a chain of points in clockwise order.
@@ -123,7 +131,14 @@ class Graph:
         return CH
 
     def _CH_graham_scan(self) -> List[Edge]:
+        # TODO
         return []
+
+
+    # --------------------------------
+    # ----------- Helper  ------------
+    # --------------------------------
+
 
     def _add_random_ni_edge_from_node(self, n:Node) -> bool:
         """
@@ -243,7 +258,7 @@ class Graph:
         """
         self._gen_fully_connected(num_vertices)
 
-        mst = _mst_prims(self)
+        mst = self._mst_prims()
 
         self.clear_edges()
         self._set_edges(mst)
@@ -296,37 +311,39 @@ class Graph:
             print(f"map[{node_id}] = {neighbors}")
 
 
-# ------------------------------------
-# ----------- Algorithms  ------------
-# ------------------------------------
+    # ------------------------------------
+    # ----------- Algorithms  ------------
+    # ------------------------------------
 
-def _all_eq(ints:List[int]) -> bool:
-    return all(x == ints[0] for x in ints)
+    def mst(self, algo:mst_algos) -> List[Edge]:
+        mst_algo = self._mst_algos[algo]
+        return mst_algo()
 
-def _mst_prims(G:Graph):
-    """
-    Only for undirected graphs.
-    """
 
-    union = Union(len(G.V))
-    edges = sorted(G.E, key=lambda e: e.weight, reverse=True)
-    mst: List[Edge] = []
+    def _mst_prims(self) -> List[Edge]:
+        """
+        Only for undirected graphs.
+        """
 
-    for _ in range(len(G.V) - 1):
+        union = Union(len(self.V))
+        edges = sorted(self.E, key=lambda e: e.weight, reverse=True)
+        mst: List[Edge] = []
 
-        smallest_edge = edges.pop()
-        u = smallest_edge.a
-        v = smallest_edge.b
+        for _ in range(len(self.V) - 1):
 
-        while union.get_representative(u.id) == union.get_representative(v.id):
             smallest_edge = edges.pop()
             u = smallest_edge.a
             v = smallest_edge.b
 
-        union.union(u.id, v.id)
-        mst.append(smallest_edge)
+            while union.get_representative(u.id) == union.get_representative(v.id):
+                smallest_edge = edges.pop()
+                u = smallest_edge.a
+                v = smallest_edge.b
 
-    return mst
+            union.union(u.id, v.id)
+            mst.append(smallest_edge)
+
+        return mst
 
 
 
