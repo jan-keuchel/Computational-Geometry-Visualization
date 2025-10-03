@@ -171,7 +171,7 @@ class Graph:
         """
         self._gen_fully_connected(num_vertices)
 
-        mst = mst_prims(self)
+        mst = _mst_prims(self)
 
         self._clear_edges()
         self._set_edges(mst)
@@ -231,7 +231,7 @@ class Graph:
 def _all_eq(ints:List[int]) -> bool:
     return all(x == ints[0] for x in ints)
 
-def mst_prims(G:Graph):
+def _mst_prims(G:Graph):
     """
     Only for undirected graphs.
     """
