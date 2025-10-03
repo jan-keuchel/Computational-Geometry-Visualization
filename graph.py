@@ -26,6 +26,11 @@ class Graph:
             graph_type.MST_NO_DEG_1: self._gen_mst_no_deg_1,
         }
 
+        self._convex_hull_algos: Dict[convex_hull_algos, Callable] = {
+            convex_hull_algos.BRUTE_FORCE: self._CH_bure_force,
+            convex_hull_algos.GRAHAM_SCAN: self._CH_graham_scan,
+        }
+
     # -------------------------------------
     # --------- Graph Generation ----------
     # -------------------------------------
@@ -63,13 +68,25 @@ class Graph:
 
 
 
-    def calculate_convex_hull(self, algo:convex_hull_algos) -> List[Edge]:
-        if algo == convex_hull_algos.BRUTE_FORCE:
-            return self._CH_bure_force()
+    def calculate_convex_hull(self, algo:convex_hull_algos) -> List[Node]:
+        ch_algo = self._convex_hull_algos[algo]
+        return ch_algo()
 
-    def _CH_bure_force(self) -> List[Edge]:
-        CH: List[Edge] = []
 
+    def _CH_bure_force(self) -> List[Node]:
+        """
+        `_CH_bure_force` computes the convex hull of the graphs nodes.
+        This is done by testing for every possible edge, if every other
+        node is to the right of said edge. The way the convex hull is
+        represented is a chain of points in clockwise order.
+        Running time: O(n^3)
+        Note: As the rendering is y-positive as downward, the image is drawn
+        in counter-clockwise order!
+        """
+        CH: List[Node] = []
+        CH_edges: List[Edge] = []
+
+        # Calculate CH_edges:
         for u in self.V:
             for v in self.V:
                 # Ensure u != v -> No self directed edge:
@@ -87,9 +104,26 @@ class Graph:
                         break
 
                 if valid:
-                    CH.append(Edge(u, v))
+                    CH_edges.append(Edge(u, v))
+
+        # Extract Nodes in clock-wise order:
+        start_edge = CH_edges.pop()
+        CH.append(start_edge.a)
+        CH.append(start_edge.b)
+        while CH_edges:
+            end_node = CH[-1]
+            for e in CH_edges:
+                if e.a.id == end_node.id: # Found next edge
+                    CH.append(e.b)
+                    CH_edges.remove(e)
+                    break
+
+        CH.pop()
 
         return CH
+
+    def _CH_graham_scan(self) -> List[Edge]:
+        return []
 
     def _add_random_ni_edge_from_node(self, n:Node) -> bool:
         """
@@ -136,7 +170,11 @@ class Graph:
         # TODO
         return True
 
-    def _clear_edges(self) -> None:
+    def empty_graph(self) -> None:
+        self.clear_edges()
+        self.clear_vertices()
+
+    def clear_edges(self) -> None:
         """
         `_clear_edges` deletes all edge data stored in the Graph class.
         Meaning: `Graph.E` is cleared and the adjacency matrix `adj_mat`
@@ -144,6 +182,10 @@ class Graph:
         """
         self.E.clear()
         self.adj_mat.clear()
+
+    def clear_vertices(self) -> None:
+        self.V.clear()
+
 
     def _set_edges(self, E:List[Edge]) -> None:
         """
@@ -203,7 +245,7 @@ class Graph:
 
         mst = _mst_prims(self)
 
-        self._clear_edges()
+        self.clear_edges()
         self._set_edges(mst)
 
     def _gen_mst_no_deg_1(self, num_vertices=10) -> None:

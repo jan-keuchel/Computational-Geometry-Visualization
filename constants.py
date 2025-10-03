@@ -30,3 +30,4 @@ class graph_type(Enum):
 
 class convex_hull_algos(Enum):
     BRUTE_FORCE                 = 0
+    GRAHAM_SCAN                 = 1

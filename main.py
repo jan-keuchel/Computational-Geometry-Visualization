@@ -3,27 +3,27 @@ import pygame
 pygame.init()
 pygame.font.init()
 
+from visualizer import Visualizer
 import constants
-from graph import Graph
-from window import Window
 
 
 def main():
 
-    window = Window(800, 600)
-    g = Graph()
-    g.generate_graph(constants.graph_type.MST_NO_DEG_1, 30)
+    vis = Visualizer()
+    vis.new_nodes(20)
+    vis.convex_hull(constants.convex_hull_algos.BRUTE_FORCE)
+
+    vis.clear_screen()
+
+    vis.render_convex_hull()
+    vis.render_nodes(compact=False)
+    vis.render_screen()
 
     running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
-        window.clear()
-        g.draw_edges(window.screen, constants.ORANGE, 2)
-        g.draw_nodes(window.screen, draw_compact=False)
-        window.render()
 
     pygame.font.quit()
     pygame.quit()
