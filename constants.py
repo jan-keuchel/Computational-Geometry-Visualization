@@ -23,6 +23,9 @@ EDGE_COLOR = (180, 160, 190)
 
 MIN_NODE_OFFSET = 40
 
+class mst_algos(Enum):
+    PRIMS                       = 0
+
 class graph_type(Enum):
     FULLY_CONNECTED             = 0
     MST_NO_DEG_1                = 1

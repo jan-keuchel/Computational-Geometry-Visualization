@@ -10,6 +10,8 @@ class Visualizer:
     def __init__(self) -> None:
         self.window = Window(800, 600)
         self.G: Graph = Graph()
+        self.CH: List[Node] = []
+        self.MST: List[Edge] = []
 
     def reset_graph(self) -> None:
         """
@@ -26,16 +28,26 @@ class Visualizer:
         self.reset_graph()
         self.G.generate_random_nodes(num_nodes)
 
+    def new_graph(self, type: constants.graph_type, num_nodes=20) -> None:
+        self.G.generate_graph(type, num_nodes)
+
+
     def convex_hull(self, algo:constants.convex_hull_algos) -> None:
         """
         `convex_hull` calcualtes the convex hull of the present set of nodes.
         If no set of nodes is present a new set will be generated. The algorithm
         used to caluclate the convex hull is specified in `algo`.
         """
-        if self.G.V == None:
+        if len(self.G.V) == 0:
             self.new_nodes()
 
-        self.CH: List[Node] = self.G.calculate_convex_hull(algo)
+        self.CH = self.G.calculate_convex_hull(algo)
+
+    def mst(self, algo:constants.mst_algos) -> None:
+        if self.G.E == None:
+            self.new_nodes() # TODO: Generate fully connected
+
+        self.MST  = self.G.mst(algo)
 
     # -------------------------------------------
     # ------------- Rendering -------------------
@@ -50,12 +62,45 @@ class Visualizer:
     def render_nodes(self, compact=False, color=constants.ORANGE) -> None:
         self.G.draw_nodes(self.window.screen, color, compact)
 
-    def render_convex_hull(self, color=constants.RED) -> None:
+    def render_edges(self,
+                     edge_color=constants.EDGE_COLOR,
+                     edge_width=1) -> None:
+        self.G.draw_edges(
+            self.window.screen,
+            edge_color,
+            edge_width
+        )
+
+    def render_graph(self, 
+                     edge_color=constants.EDGE_COLOR,
+                     edge_width=1,
+                     compact=False,
+                     node_col=constants.ORANGE) -> None:
+        self.G.draw(
+            self.window.screen,
+            edge_col=edge_color,
+            edge_width=edge_width,
+            node_col=node_col,
+            node_draw_compact=compact
+        )
+
+    def render_mst(self,
+                   edge_col=constants.GREEN,
+                   edge_width=2) -> None:
+        if len(self.MST) == 0:
+            self.mst(constants.mst_algos.PRIMS)
+
+        for e in self.MST:
+            e.draw(self.window.screen, edge_col, edge_width)
+
+    def render_convex_hull(self,
+                           edge_color=constants.RED,
+                           edge_width=2) -> None:
         if self.CH == None:
             self.convex_hull(constants.convex_hull_algos.BRUTE_FORCE)
 
         for i in range(len(self.CH)):
             Edge(self.CH[i], self.CH[(i+1) % len(self.CH)]).draw(
-                self.window.screen, color, 2
+                self.window.screen, edge_color, edge_width
             )
 
