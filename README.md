@@ -21,14 +21,21 @@ This is because I do not know about the algorithms, yet.
 
 ## Progress
 To document the progress I've done so far and list some other things I need to do in order to visualize certain algorithms, here's a list of things I'm working on:
-- [ ] Generation of planar graphs without intersecting edges
+- [ ] Generation of graphs on which the algorithms will be visualized
     - [x] Fully connected graph
     - [x] MST
     - [x] MST with additional edges on nodes n with originally deg(n) = 1
+    - [ ] Triangulation
 - [ ] Convex Hulls
-    - [x] Brute force approach
+    - [ ] Brute force approach
+        - [x] Algorithm itself
+        - [ ] Visualization with animation
     - [ ] Graham's scan
+        - [x] Algorithm itself
+        - [ ] Visualization with animation
     - [ ] Gift wrapping (Jarvis March)
+        - [ ] Algorithm itself
+        - [ ] Visualization with animation
 - [ ] Line Segment Intersection
 - [ ] Triangulation
 - [ ] Orthogonal Range Searching

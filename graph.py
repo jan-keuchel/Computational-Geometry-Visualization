@@ -130,10 +130,48 @@ class Graph:
 
         return CH
 
-    def _CH_graham_scan(self) -> List[Edge]:
-        # TODO
-        return []
+    def _CH_graham_scan(self) -> List[Node]:
+        """
+        `_CH_graham_scan` is an implementation of the Graham's scan algorithm
+        for computing the convex hull of a set of vertices.The way the 
+        convex hull is represented is a chain of points in clockwise order.
+        Running time: O(n*log(n))
+        Note: As the rendering is y-positive as downward, the image is drawn
+        in counter-clockwise order!
+        """
+        U: List[Node] = [] # Upper hull
+        L: List[Node] = [] # Lower hull
+        V = sorted(self.V, key=lambda v: (v.p.x, v.p.y))
 
+        # Initialize upper hull
+        U.append(V[0])
+        U.append(V[1])
+
+        for i in range(2, len(V)):
+            U.append(V[i])
+
+            # While at least 3 nodes on the stack and last
+            # 3 nodes make a left hand turn, pop the second to last
+            # node off of the stack.
+            while len(U) > 2 and math_helper.right_of(U[-3].p, U[-2].p, U[-1].p) < 0:
+                U.remove(U[len(U) - 2])
+
+        # Initialize lower hull
+        L.append(V[-1])
+        L.append(V[-2])
+
+        for i in range(2, len(V)):
+            L.append(V[len(V)-1-i])
+
+            while len(L) > 2 and math_helper.right_of(L[-3].p, L[-2].p, L[-1].p) < 0:
+                L.remove(L[len(L) - 2])
+
+        # Remove duplicate Nodes
+        L.pop(0)
+        L.pop(-1)
+
+        U.extend(L)
+        return U
 
     # --------------------------------
     # ----------- Helper  ------------
