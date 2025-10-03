@@ -2,7 +2,7 @@ from typing import Callable, Dict, List
 from collections import defaultdict
 
 import constants
-from constants import graph_type
+from constants import graph_type, convex_hull_algos
 import math_helper
 from edge import Edge
 from node import Node
@@ -33,7 +33,7 @@ class Graph:
         gen = self._graph_gen_algos[type]
         gen(num_vertices)
 
-    def _generate_random_nodes(self, num_vertices=10) -> None:
+    def generate_random_nodes(self, num_vertices=10) -> None:
         """
         `_generate_random_nodes` generates `num_vertices` nodes
         at random locations with a minimal pair-wise distance
@@ -60,6 +60,36 @@ class Graph:
                         break
 
             self.V.append(Node(Point(x, y)))
+
+
+
+    def calculate_convex_hull(self, algo:convex_hull_algos) -> List[Edge]:
+        if algo == convex_hull_algos.BRUTE_FORCE:
+            return self._CH_bure_force()
+
+    def _CH_bure_force(self) -> List[Edge]:
+        CH: List[Edge] = []
+
+        for u in self.V:
+            for v in self.V:
+                # Ensure u != v -> No self directed edge:
+                if u.id == v.id: 
+                    continue
+
+                valid = True
+                for w in self.V:
+                    # Only compare other nodes to this potential edge:
+                    if w.id == u.id or w.id == v.id: 
+                        continue
+
+                    if not (math_helper.right_of(u.p, v.p, w.p) > 0):
+                        valid = False
+                        break
+
+                if valid:
+                    CH.append(Edge(u, v))
+
+        return CH
 
     def _add_random_ni_edge_from_node(self, n:Node) -> bool:
         """
@@ -159,7 +189,7 @@ class Graph:
         """
         `_gen_fully_connected` generates a fully connected graph.
         """
-        self._generate_random_nodes(num_vertices)
+        self.generate_random_nodes(num_vertices)
 
         for i in range(len(self.V)):
             for j in range(i + 1, len(self.V)):

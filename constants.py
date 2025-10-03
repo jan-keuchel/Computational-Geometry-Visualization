@@ -27,3 +27,6 @@ class graph_type(Enum):
     FULLY_CONNECTED             = 0
     MST_NO_DEG_1                = 1
     MST                         = 2
+
+class convex_hull_algos(Enum):
+    BRUTE_FORCE                 = 0
