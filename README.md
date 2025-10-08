@@ -27,12 +27,12 @@ To document the progress I've done so far and list some other things I need to d
     - [x] MST with additional edges on nodes n with originally deg(n) = 1
     - [ ] Triangulation
 - [ ] Convex Hulls
-    - [ ] Brute force approach
+    - [x] Brute force approach
         - [x] Algorithm itself
-        - [ ] Visualization with animation
-    - [ ] Graham's scan
+        - [x] Visualization with animation
+    - [x] Graham's scan
         - [x] Algorithm itself
-        - [ ] Visualization with animation
+        - [x] Visualization with animation
     - [ ] Gift wrapping (Jarvis March)
         - [ ] Algorithm itself
         - [ ] Visualization with animation
