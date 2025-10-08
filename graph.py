@@ -1,11 +1,11 @@
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Union
 from collections import defaultdict
 
 import constants
 from constants import graph_type, convex_hull_algos, mst_algos
 import math_helper
-from edge import Edge
-from node import Node
+from edge import Edge, EdgeDrawContainer
+from node import Node, NodeDrawContainer
 from point import Point
 
 import random
@@ -34,6 +34,10 @@ class Graph:
             convex_hull_algos.BRUTE_FORCE: self._CH_brute_force,
             convex_hull_algos.GRAHAM_SCAN: self._CH_graham_scan,
         }
+
+    def set_anim_step_callback(self, cb:Callable) -> None:
+        self.anim_step = cb
+
 
     # -------------------------------------
     # --------- Graph Generation ----------
@@ -76,12 +80,12 @@ class Graph:
     # ----------- Convex Hull  ------------
     # -------------------------------------
 
-    def calculate_convex_hull(self, algo:convex_hull_algos) -> List[Node]:
+    def calculate_convex_hull(self, algo:convex_hull_algos, animate=False) -> List[Node]:
         ch_algo = self._convex_hull_algos[algo]
-        return ch_algo()
+        return ch_algo(animate)
 
 
-    def _CH_brute_force(self) -> List[Node]:
+    def _CH_brute_force(self, animate=False) -> List[Node]:
         """
         `_CH_brute_force` computes the convex hull of the graphs nodes.
         This is done by testing for every possible edge, if every other
@@ -100,6 +104,30 @@ class Graph:
                 # Ensure u != v -> No self directed edge:
                 if u.id == v.id: 
                     continue
+
+                if animate:
+                    draw_container: GraphDrawContainer = GraphDrawContainer()
+
+                    # Add current Edge
+                    current_edge_layer: List[Drawable] = [
+                        EdgeDrawContainer(Edge(u, v), color=constants.BLUE, width=3)
+                    ]
+                    draw_container.add_layer(current_edge_layer)
+
+                    # Add asured CH edges
+                    CH_layer: List[Drawable] = [
+                        EdgeDrawContainer(e, color=constants.ORANGE, width=5)
+                        for e in CH_edges
+                    ]
+                    draw_container.add_layer(CH_layer)
+
+                    # Add nodes for the end rendering
+                    nodes_layer: List[Drawable] = [
+                        NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                        for n in self.V
+                    ]
+                    draw_container.add_layer(nodes_layer)
+                    self.anim_step(draw_container)
 
                 valid = True
                 for w in self.V:
@@ -130,7 +158,7 @@ class Graph:
 
         return CH
 
-    def _CH_graham_scan(self) -> List[Node]:
+    def _CH_graham_scan(self, animate=False) -> List[Node]:
         """
         `_CH_graham_scan` is an implementation of the Graham's scan algorithm
         for computing the convex hull of a set of vertices.The way the 
@@ -156,8 +184,8 @@ class Graph:
             while len(U) > 2 and math_helper.right_of(U[-3].p, U[-2].p, U[-1].p) < 0:
                 U.remove(U[len(U) - 2])
 
-        # Initialize lower hull
         L.append(V[-1])
+        # Initialize lower hull
         L.append(V[-2])
 
         for i in range(2, len(V)):
@@ -363,7 +391,7 @@ class Graph:
         Only for undirected graphs.
         """
 
-        union = Union(len(self.V))
+        union = CustomUnion(len(self.V))
         edges = sorted(self.E, key=lambda e: e.weight, reverse=True)
         mst: List[Edge] = []
 
@@ -390,7 +418,7 @@ class Graph:
 # --------- Data structures ----------
 # ------------------------------------
 
-class Union:
+class CustomUnion:
     def __init__(self, n:int) -> None:
         self._representatives: List[int] = list(range(n))
 
@@ -412,4 +440,22 @@ class Union:
 
 
 
+# -------------------------------
+# --------- Animations ----------
+# -------------------------------
+
+Drawable = Union[NodeDrawContainer, EdgeDrawContainer]
+
+class GraphDrawContainer:
+    def __init__(self) -> None:
+        self.layers: List[List[Drawable]] = []
+
+    def add_layer(self, layer: List[Drawable]) -> None:
+        self.layers.append(layer)
+
+    def get_all_drawables(self) -> List[Drawable]:
+        return [drawable for layer in self.layers for drawable in layer]
+
+    def empty(self) -> None:
+        self.layers.clear()
 

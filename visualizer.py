@@ -1,15 +1,19 @@
+# pyright: reportMissingImports=false
 from typing import List
 import constants
 from edge import Edge
-from graph import Graph
+from graph import Graph, GraphDrawContainer
 from node import Node
 from window import Window
+import pygame
 
 
 class Visualizer:
     def __init__(self) -> None:
         self.window = Window(800, 600)
         self.G: Graph = Graph()
+        self.G.set_anim_step_callback(self.anim_step)
+        self.clock = pygame.time.Clock()
         self.CH: List[Node] = []
         self.MST: List[Edge] = []
 
@@ -32,7 +36,7 @@ class Visualizer:
         self.G.generate_graph(type, num_nodes)
 
 
-    def convex_hull(self, algo:constants.convex_hull_algos) -> None:
+    def convex_hull(self, algo:constants.convex_hull_algos, animate=False) -> None:
         """
         `convex_hull` calcualtes the convex hull of the present set of nodes.
         If no set of nodes is present a new set will be generated. The algorithm
@@ -41,7 +45,7 @@ class Visualizer:
         if len(self.G.V) == 0:
             self.new_nodes()
 
-        self.CH = self.G.calculate_convex_hull(algo)
+        self.CH = self.G.calculate_convex_hull(algo, animate)
 
     def mst(self, algo:constants.mst_algos) -> None:
         if self.G.E == None:
@@ -95,12 +99,21 @@ class Visualizer:
 
     def render_convex_hull(self,
                            edge_color=constants.RED,
-                           edge_width=2) -> None:
+                           edge_width=2,
+                           animate=False) -> None:
         if self.CH == None:
-            self.convex_hull(constants.convex_hull_algos.BRUTE_FORCE)
+            self.convex_hull(constants.convex_hull_algos.BRUTE_FORCE, animate)
 
         for i in range(len(self.CH)):
             Edge(self.CH[i], self.CH[(i+1) % len(self.CH)]).draw(
                 self.window.screen, edge_color, edge_width
             )
 
+    def anim_step(self, graph_container:GraphDrawContainer) -> None:
+        self.clear_screen()
+        drawables = graph_container.get_all_drawables()
+        for drawable in drawables:
+            drawable.draw(self.window.screen)
+
+        self.render_screen()
+        self.clock.tick(constants.FPS)

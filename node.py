@@ -30,3 +30,13 @@ class Node:
             screen.blit(text_surface, text_rect)
 
 
+
+class NodeDrawContainer:
+    def __init__(self, n:Node, draw_compact:bool, color) -> None:
+        self.n = n
+        self.draw_compact = draw_compact
+        self.color = color
+
+    def draw(self, screen) -> None:
+        self.n.draw(screen, self.draw_compact, self.color)
+        

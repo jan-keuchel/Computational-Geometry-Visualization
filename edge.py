@@ -35,3 +35,11 @@ class Edge:
                            width)
 
 
+class EdgeDrawContainer:
+    def __init__(self, e:Edge, color, width:int) -> None:
+        self.e     = e
+        self.color = color
+        self.width = width
+
+    def draw(self, screen) -> None:
+        self.e.draw(screen, self.color, self.width)
