@@ -110,13 +110,13 @@ class Graph:
 
                     # Add current Edge
                     current_edge_layer: List[Drawable] = [
-                        EdgeDrawContainer(Edge(u, v), color=constants.BLUE, width=3)
+                        EdgeDrawContainer(Edge(u, v), color=constants.RED, width=3)
                     ]
                     draw_container.add_layer(current_edge_layer)
 
                     # Add asured CH edges
                     CH_layer: List[Drawable] = [
-                        EdgeDrawContainer(e, color=constants.ORANGE, width=5)
+                        EdgeDrawContainer(e, color=constants.GREEN, width=5)
                         for e in CH_edges
                     ]
                     draw_container.add_layer(CH_layer)
@@ -178,21 +178,156 @@ class Graph:
         for i in range(2, len(V)):
             U.append(V[i])
 
+            if animate:
+                draw_container: GraphDrawContainer = GraphDrawContainer()
+
+                # Add edges of the current hull
+                current_upper_hull: List[Drawable] = []
+                for k in range(len(U) - 1):
+                    current_upper_hull.append(EdgeDrawContainer(
+                        Edge(U[k], U[k+1]), color=constants.ORANGE, width=3
+                    ))
+                draw_container.add_layer(current_upper_hull)
+
+                # Add generic nodes
+                nodes_layer: List[Drawable] = [
+                    NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                    for n in self.V
+                ]
+                draw_container.add_layer(nodes_layer)
+
+                # Add nodes in CH
+                CH_nodes: List[Drawable] = [
+                    NodeDrawContainer(n, draw_compact=False, color=constants.RED)
+                    for n in U
+                ]
+                draw_container.add_layer(CH_nodes)
+
+                # Draw
+                self.anim_step(draw_container)
+
+
             # While at least 3 nodes on the stack and last
             # 3 nodes make a left hand turn, pop the second to last
             # node off of the stack.
             while len(U) > 2 and math_helper.right_of(U[-3].p, U[-2].p, U[-1].p) < 0:
                 U.remove(U[len(U) - 2])
+                if animate:
+                    draw_container: GraphDrawContainer = GraphDrawContainer()
 
-        L.append(V[-1])
+                    # Add edges of the current hull
+                    current_upper_hull: List[Drawable] = []
+                    for k in range(len(U) - 1):
+                        current_upper_hull.append(EdgeDrawContainer(
+                            Edge(U[k], U[k+1]), color=constants.ORANGE, width=3
+                        ))
+                    draw_container.add_layer(current_upper_hull)
+
+                    # Add generic nodes
+                    nodes_layer: List[Drawable] = [
+                        NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                        for n in self.V
+                    ]
+                    draw_container.add_layer(nodes_layer)
+
+                    # Add nodes in CH
+                    CH_nodes: List[Drawable] = [
+                        NodeDrawContainer(n, draw_compact=False, color=constants.RED)
+                        for n in U
+                    ]
+                    draw_container.add_layer(CH_nodes)
+
+                    # Draw
+                    self.anim_step(draw_container)
+
+
+
+
+
+
         # Initialize lower hull
+        L.append(V[-1])
         L.append(V[-2])
 
         for i in range(2, len(V)):
             L.append(V[len(V)-1-i])
 
+
+            if animate:
+                draw_container: GraphDrawContainer = GraphDrawContainer()
+
+                # Add Upper Hull
+                current_upper_hull: List[Drawable] = []
+                for k in range(len(U) - 1):
+                    current_upper_hull.append(EdgeDrawContainer(
+                        Edge(U[k], U[k+1]), color=constants.GREEN, width=3
+                    ))
+                draw_container.add_layer(current_upper_hull)
+
+                # Add edges of the current hull
+                current_upper_hull: List[Drawable] = []
+                for k in range(len(L) - 1):
+                    current_upper_hull.append(EdgeDrawContainer(
+                        Edge(L[k], L[k+1]), color=constants.ORANGE, width=3
+                    ))
+                draw_container.add_layer(current_upper_hull)
+
+                # Add generic nodes
+                nodes_layer: List[Drawable] = [
+                    NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                    for n in self.V
+                ]
+                draw_container.add_layer(nodes_layer)
+
+                # Add nodes in CH
+                CH_nodes: List[Drawable] = [
+                    NodeDrawContainer(n, draw_compact=False, color=constants.RED)
+                    for n in L
+                ]
+                draw_container.add_layer(CH_nodes)
+
+                # Draw
+                self.anim_step(draw_container)
+
             while len(L) > 2 and math_helper.right_of(L[-3].p, L[-2].p, L[-1].p) < 0:
-                L.remove(L[len(L) - 2])
+
+
+                if animate:
+                    L.remove(L[len(L) - 2])
+                    draw_container: GraphDrawContainer = GraphDrawContainer()
+
+                    # Add Upper Hull
+                    current_upper_hull: List[Drawable] = []
+                    for k in range(len(U) - 1):
+                        current_upper_hull.append(EdgeDrawContainer(
+                            Edge(U[k], U[k+1]), color=constants.GREEN, width=3
+                        ))
+                    draw_container.add_layer(current_upper_hull)
+
+                    # Add edges of the current hull
+                    current_upper_hull: List[Drawable] = []
+                    for k in range(len(L) - 1):
+                        current_upper_hull.append(EdgeDrawContainer(
+                            Edge(L[k], L[k+1]), color=constants.ORANGE, width=3
+                        ))
+                    draw_container.add_layer(current_upper_hull)
+
+                    # Add generic nodes
+                    nodes_layer: List[Drawable] = [
+                        NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                        for n in self.V
+                    ]
+                    draw_container.add_layer(nodes_layer)
+
+                    # Add nodes in CH
+                    CH_nodes: List[Drawable] = [
+                        NodeDrawContainer(n, draw_compact=False, color=constants.RED)
+                        for n in L
+                    ]
+                    draw_container.add_layer(CH_nodes)
+
+                    # Draw
+                    self.anim_step(draw_container)
 
         # Remove duplicate Nodes
         L.pop(0)
