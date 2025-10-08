@@ -2,7 +2,7 @@
 import pygame
 from enum import Enum
 
-font = pygame.font.SysFont('Hack Nerd Font', 18)
+font = pygame.font.SysFont('Hack Nerd Font', 16)
 
 BLACK   = (0, 0, 0)
 WHITE   = (255, 255, 255)
@@ -16,14 +16,14 @@ BACKGROUND = (30, 30, 35)
 
 EDGE_COLOR = (180, 160, 190)
 
-FPS = 40
+FPS = 60
 
 
 # -----------------------------------
 # --------- Graph Generation --------
 # -----------------------------------
 
-MIN_NODE_OFFSET = 40
+MIN_NODE_OFFSET = 30
 
 class mst_algos(Enum):
     PRIMS                       = 0
