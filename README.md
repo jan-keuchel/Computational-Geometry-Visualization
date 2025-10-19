@@ -26,7 +26,7 @@ To document the progress I've done so far and list some other things I need to d
     - [x] MST
     - [x] MST with additional edges on nodes n with originally deg(n) = 1
     - [ ] Triangulation
-- [] Convex Hulls
+- [x] Convex Hulls
     - [x] Brute force approach
         - [x] Algorithm itself
         - [x] Visualization with animation
