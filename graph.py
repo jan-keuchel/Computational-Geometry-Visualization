@@ -1,5 +1,4 @@
 # pyright: reportMissingImports=false
-import typing
 import pygame
 import pygame.gfxdraw
 
@@ -12,8 +11,6 @@ import math_helper
 from point import Point
 
 import random
-
-# Forward declarations
 
 
 # -------------------------
