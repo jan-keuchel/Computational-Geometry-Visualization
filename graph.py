@@ -6,7 +6,7 @@ from typing import Callable, Dict, List, Union
 from collections import defaultdict
 
 import constants
-from constants import graph_type, convex_hull_algos, mst_algos
+from constants import BORDER_OFFSET, FOREGROUND, NODE_COMPACT_SIZE, NODE_FULL_SIZE, WIN_HEIGHT, WIN_WIDTH, graph_type, convex_hull_algos, mst_algos
 import math_helper
 from point import Point
 
@@ -16,7 +16,6 @@ import random
 # -------------------------
 # --------- Node ----------
 # -------------------------
-
 class Node:
     _next_id = 0
 
@@ -31,13 +30,13 @@ class Node:
             color = constants.BLUE
 
         if draw_compact:
-            w = 8
+            w = NODE_COMPACT_SIZE
             pygame.gfxdraw.box(screen, (self.p.x - w/2, self.p.y - w/2, w, w), color)
         else:
-            pygame.gfxdraw.filled_circle(screen, self.p.x, self.p.y, 15, color)
-            pygame.gfxdraw.aacircle(screen, self.p.x, self.p.y, 15, constants.FOREGROUND)
+            pygame.gfxdraw.filled_circle(screen, self.p.x, self.p.y, NODE_FULL_SIZE, color)
+            pygame.gfxdraw.aacircle(screen, self.p.x, self.p.y, NODE_FULL_SIZE, constants.FOREGROUND)
 
-            text_surface = constants.font.render(f"{self.id}", True, (255, 240, 250))
+            text_surface = constants.font.render(f"{self.id}", True, (FOREGROUND))
             text_rect = text_surface.get_rect(center=(self.p.x, self.p.y))
             screen.blit(text_surface, text_rect)
 
@@ -50,6 +49,9 @@ class NodeDrawContainer:
     def draw(self, screen) -> None:
         self.n.draw(screen, self.draw_compact, self.color)
         
+
+
+
 
 # -------------------------
 # --------- Edge ----------
@@ -84,7 +86,6 @@ class Edge:
                            (self.b.p.x, self.b.p.y),
                            width)
 
-
 class EdgeDrawContainer:
     def __init__(self, e:Edge, color, width:int) -> None:
         self.e     = e
@@ -101,6 +102,7 @@ class EdgeDrawContainer:
             for e in edges
         ]
         return edc_list
+
 
 
 
@@ -152,8 +154,8 @@ class Graph:
         # between every pair of nodes.
         for _ in range(num_vertices):
             too_close = False
-            x: int = random.randint(30, 770)
-            y: int = random.randint(30, 570)
+            x: int = random.randint(BORDER_OFFSET, WIN_WIDTH - BORDER_OFFSET)
+            y: int = random.randint(BORDER_OFFSET, WIN_HEIGHT - BORDER_OFFSET)
             for v in self.V:
                 if math_helper.distance(Point(x, y), v.p) < constants.MIN_NODE_OFFSET:
                     too_close = True
@@ -161,8 +163,8 @@ class Graph:
 
             while too_close:
                 too_close = False
-                x = random.randint(30, 770)
-                y = random.randint(30, 570)
+                x = random.randint(BORDER_OFFSET, WIN_WIDTH - BORDER_OFFSET)
+                y = random.randint(BORDER_OFFSET, WIN_HEIGHT - BORDER_OFFSET)
                 for v in self.V:
                     if math_helper.distance(Point(x, y), v.p) < constants.MIN_NODE_OFFSET:
                         too_close = True
@@ -664,8 +666,6 @@ class CustomUnion:
 
     def get_representative(self, idx:int) -> int:
         return self._representatives[idx]
-
-
 
 
 

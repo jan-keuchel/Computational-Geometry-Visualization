@@ -4,6 +4,10 @@ from enum import Enum
 
 font = pygame.font.SysFont('Hack Nerd Font', 16)
 
+WIN_WIDTH = 800
+WIN_HEIGHT = 600
+BORDER_OFFSET = 30
+
 BLACK   = (0, 0, 0)
 WHITE   = (255, 255, 255)
 RED     = (244, 103, 110)
@@ -17,6 +21,10 @@ BACKGROUND = (30, 30, 35)
 EDGE_COLOR = (180, 160, 190)
 
 FPS = 20
+
+# Rendering
+NODE_COMPACT_SIZE = 8
+NODE_FULL_SIZE = 15
 
 
 # -----------------------------------

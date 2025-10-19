@@ -8,7 +8,7 @@ import pygame
 
 class Visualizer:
     def __init__(self) -> None:
-        self.window = Window(800, 600)
+        self.window = Window(constants.WIN_WIDTH, constants.WIN_HEIGHT)
         self.G: Graph = Graph()
         self.G.set_anim_step_callback(self.anim_step)
         self.clock = pygame.time.Clock()
