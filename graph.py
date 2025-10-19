@@ -130,6 +130,7 @@ class Graph:
         self._convex_hull_algos: Dict[convex_hull_algos, Callable] = {
             convex_hull_algos.BRUTE_FORCE: self._CH_brute_force,
             convex_hull_algos.GRAHAM_SCAN: self._CH_graham_scan,
+            convex_hull_algos.JARVIS_MARCH: self._CH_jarvis_march,
         }
 
     def set_anim_step_callback(self, cb:Callable) -> None:
@@ -429,6 +430,53 @@ class Graph:
 
         U.extend(L)
         return U
+
+
+    def _CH_jarvis_march(self, animate=False) -> List[Node]:
+        """
+        `_CH_jarvis_march` is an implementation of the Jarvis March algorithm
+        for computing the convex hull of a set of vertices. The way the 
+        convex hull is represented is a chain of points in clockwise order.
+        Running time: `O(n*k)` with `n` nodes and `k` nodes in the convex hull.
+        Note: As the rendering is y-positive as downward, the image is drawn
+        in counter-clockwise order!
+        """
+
+        CH: List[Node] = []
+        others: List[Node] = self.V.copy()
+
+        # Find left most point
+        current: Node = self.V[0]
+        for v in self.V:
+            if v.p.x < current.p.x:
+                current = v
+
+        CH.append(current)
+
+        # Take first node as potential new_node that isn't the left most node
+        others.remove(current)
+        new_node: Node = others[0]
+        others.append(current)
+        
+        for _ in range(len(self.V)):
+            # Find new node of CH
+            for p in others:
+                if math_helper.right_of(current.p, new_node.p, p.p) < 0:
+                    new_node = p
+
+            current = new_node
+            CH.append(current)
+            others.remove(current)
+
+            if new_node.id == CH[0].id:
+                break
+
+            # Choose new node that is not the "target" node
+            others.remove(CH[0])
+            new_node = others[0]
+            others.append(CH[0])
+
+        return CH
 
     # --------------------------------
     # ----------- Helper  ------------
