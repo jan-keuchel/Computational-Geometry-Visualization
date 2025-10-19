@@ -11,8 +11,8 @@ def main():
 
     vis = Visualizer()
 
-    vis.new_nodes(num_nodes=50)
-    vis.convex_hull(constants.convex_hull_algos.GRAHAM_SCAN, animate=True)
+    vis.new_nodes(num_nodes=30)
+    vis.convex_hull(constants.convex_hull_algos.JARVIS_MARCH, animate=True)
 
     vis.clear_screen()
 

@@ -464,6 +464,48 @@ class Graph:
                 if math_helper.right_of(current.p, new_node.p, p.p) < 0:
                     new_node = p
 
+                if animate:
+                    draw_container: GraphDrawContainer = GraphDrawContainer()
+                    
+                    # Add CH
+                    current_CH: List[Drawable] = []
+                    for k in range(len(CH) - 1):
+                        current_CH.append(EdgeDrawContainer(
+                            Edge(CH[k], CH[k+1]), color=constants.GREEN, width=3
+                        ))
+                    draw_container.add_layer(current_CH)
+
+                    # Add currently considered new edge
+                    draw_container.add_layer(
+                        EdgeDrawContainer.convert_edge_list_to_Drawable_list(
+                            [Edge(current, new_node)], constants.ORANGE, 3)
+                    )
+                    
+                    # Add edge that is currently tested
+                    draw_container.add_layer(
+                        EdgeDrawContainer.convert_edge_list_to_Drawable_list(
+                            [Edge(current, p)], constants.RED, 3)
+                    )
+
+                    # Add generic nodes
+                    nodes_layer: List[Drawable] = [
+                        NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                        for n in self.V
+                    ]
+                    draw_container.add_layer(nodes_layer)
+
+                    # Add nodes in CH
+                    CH_nodes: List[Drawable] = [
+                        NodeDrawContainer(n, draw_compact=False, color=constants.RED)
+                        for n in CH
+                    ]
+                    draw_container.add_layer(CH_nodes)
+
+                    # Draw
+                    self.anim_step(draw_container)
+
+
+
             current = new_node
             CH.append(current)
             others.remove(current)
