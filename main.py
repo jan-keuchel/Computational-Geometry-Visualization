@@ -10,13 +10,15 @@ import constants
 def main():
 
     vis = Visualizer()
-    vis.new_nodes(20)
-    vis.convex_hull(constants.convex_hull_algos.BRUTE_FORCE)
+
+    vis.new_nodes(num_nodes=50)
+    vis.convex_hull(constants.convex_hull_algos.GRAHAM_SCAN, animate=True)
 
     vis.clear_screen()
 
-    vis.render_convex_hull()
+    vis.render_convex_hull(edge_color=constants.GREEN, edge_width=5)
     vis.render_nodes(compact=False)
+    
     vis.render_screen()
 
     running = True

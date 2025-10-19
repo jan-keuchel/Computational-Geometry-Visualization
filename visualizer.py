@@ -1,9 +1,7 @@
 # pyright: reportMissingImports=false
 from typing import List
 import constants
-from edge import Edge
-from graph import Graph, GraphDrawContainer
-from node import Node
+from graph import Edge, Graph, GraphDrawContainer, Node
 from window import Window
 import pygame
 

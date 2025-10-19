@@ -1,17 +1,115 @@
+# pyright: reportMissingImports=false
+import typing
+import pygame
+import pygame.gfxdraw
+
 from typing import Callable, Dict, List, Union
 from collections import defaultdict
 
 import constants
 from constants import graph_type, convex_hull_algos, mst_algos
 import math_helper
-from edge import Edge, EdgeDrawContainer
-from node import Node, NodeDrawContainer
 from point import Point
 
 import random
 
+# Forward declarations
 
 
+# -------------------------
+# --------- Node ----------
+# -------------------------
+
+class Node:
+    _next_id = 0
+
+    def __init__(self, p:Point) -> None:
+        self.id = Node._next_id
+        Node._next_id += 1
+
+        self.p = p
+
+    def draw(self, screen, draw_compact=False, color=None) -> None:
+        if color == None:
+            color = constants.BLUE
+
+        if draw_compact:
+            w = 8
+            pygame.gfxdraw.box(screen, (self.p.x - w/2, self.p.y - w/2, w, w), color)
+        else:
+            pygame.gfxdraw.filled_circle(screen, self.p.x, self.p.y, 15, color)
+            pygame.gfxdraw.aacircle(screen, self.p.x, self.p.y, 15, constants.FOREGROUND)
+
+            text_surface = constants.font.render(f"{self.id}", True, (255, 240, 250))
+            text_rect = text_surface.get_rect(center=(self.p.x, self.p.y))
+            screen.blit(text_surface, text_rect)
+
+class NodeDrawContainer:
+    def __init__(self, n:Node, draw_compact:bool, color) -> None:
+        self.n = n
+        self.draw_compact = draw_compact
+        self.color = color
+
+    def draw(self, screen) -> None:
+        self.n.draw(screen, self.draw_compact, self.color)
+        
+
+# -------------------------
+# --------- Edge ----------
+# -------------------------
+class Edge:
+    _next_id: int = 0
+
+    def __init__(self, 
+                 a:Node,
+                 b:Node,
+                 weight=None) -> None:
+
+        self.id = Edge._next_id
+        Edge._next_id += 1
+
+        self.a  = a
+        self.b  = b
+
+        if weight == None:
+            self.weight: float = math_helper.distance(a.p, b.p)
+        else:
+            self.weight: float = weight
+
+
+    def draw(self, screen, color=None, width=1) -> None:
+
+        if color == None:
+            color = constants.EDGE_COLOR
+        pygame.draw.aaline(screen, 
+                           color,
+                           (self.a.p.x, self.a.p.y), 
+                           (self.b.p.x, self.b.p.y),
+                           width)
+
+
+class EdgeDrawContainer:
+    def __init__(self, e:Edge, color, width:int) -> None:
+        self.e     = e
+        self.color = color
+        self.width = width
+
+    def draw(self, screen) -> None:
+        self.e.draw(screen, self.color, self.width)
+
+    @staticmethod
+    def convert_edge_list_to_Drawable_list(edges: List[Edge], col, w:int) -> List['Drawable']:
+        edc_list: List[Drawable] = [
+            EdgeDrawContainer(e, color=col, width=w)
+            for e in edges
+        ]
+        return edc_list
+
+
+
+# --------------------------
+# --------- Graph ----------
+# --------------------------
 class Graph:
     def __init__(self,  V: List[Node] | None = None,
                  E: List[Edge] | None = None) -> None:
@@ -109,10 +207,7 @@ class Graph:
                     draw_container: GraphDrawContainer = GraphDrawContainer()
 
                     # Add current Edge
-                    current_edge_layer: List[Drawable] = [
-                        EdgeDrawContainer(Edge(u, v), color=constants.RED, width=3)
-                    ]
-                    draw_container.add_layer(current_edge_layer)
+                    draw_container.add_layer(EdgeDrawContainer.convert_edge_list_to_Drawable_list([Edge(u,v)], constants.RED, 3))
 
                     # Add asured CH edges
                     CH_layer: List[Drawable] = [
@@ -572,6 +667,9 @@ class CustomUnion:
 
     def get_representative(self, idx:int) -> int:
         return self._representatives[idx]
+
+
+
 
 
 
