@@ -26,17 +26,23 @@ To document the progress I've done so far and list some other things I need to d
     - [x] MST
     - [x] MST with additional edges on nodes n with originally deg(n) = 1
     - [ ] Triangulation
-- [ ] Convex Hulls
+- [] Convex Hulls
     - [x] Brute force approach
         - [x] Algorithm itself
         - [x] Visualization with animation
     - [x] Graham's scan
         - [x] Algorithm itself
         - [x] Visualization with animation
-    - [ ] Gift wrapping (Jarvis March)
+    - [x] Gift wrapping (Jarvis March)
+        - [x] Algorithm itself
+        - [x] Visualization with animation
+- [ ] Line Segment Intersection
+    - [ ] Brute force approach
         - [ ] Algorithm itself
         - [ ] Visualization with animation
-- [ ] Line Segment Intersection
+    - [ ] Bentley-Ottman Algorithm
+        - [ ] Algorithm itself
+        - [ ] Visualization with animation
 - [ ] Triangulation
 - [ ] Orthogonal Range Searching
 - [ ] Point Location
