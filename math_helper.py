@@ -28,7 +28,7 @@ def line_segment_intersection(a1:Point, a2:Point, b1:Point, b2:Point) -> bool:
 def point_line_segment_intersection(a1:Point, a2:Point, b1:Point, b2:Point, p:Point) -> bool:
     """
     `point_line_segment_intersection` calculates the point of intersection between
-    the lines l1: a1 -- a2 and l2: b1 -- b2. If l1, l2 intersect, the `p` is set
+    the lines l1: `a1` -- `a2` and l2: `b1` -- `b2`. If l1, l2 intersect, the `p` is set
     to the intersection point and the return value is `True`. l1, l2 don't intersect
     the return value is `False` and `p` remains unmodified.
     """
@@ -43,11 +43,11 @@ def point_line_segment_intersection(a1:Point, a2:Point, b1:Point, b2:Point, p:Po
     y4: float = b2.y
 
     denom: float = (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4)
-    if denom == 0:
+    if abs(denom) < 1e-9:
         return False
 
     t: float =  ((x1 - x3)*(y3 - y4) - (y1 - y3)*(x3 - x4)) / denom
-    u: float =  ((x1 - x2)*(y1 - y3) - (y1 - y2)*(x1 - x3)) / denom
+    u: float = -((x1 - x2)*(y1 - y3) - (y1 - y2)*(x1 - x3)) / denom
 
     if not (t >= 0 and t <= 1 and u >= 0 and u <= 1):
         return False
