@@ -1,4 +1,6 @@
 # pyright: reportMissingImports=false
+from edge import Edge, EdgeDrawContainer
+from node import Node, NodeDrawContainer
 import pygame
 import pygame.gfxdraw
 
@@ -6,105 +8,11 @@ from typing import Callable, Dict, List, Union
 from collections import defaultdict
 
 import constants
-from constants import BORDER_OFFSET, FOREGROUND, NODE_COMPACT_SIZE, NODE_FULL_SIZE, WIN_HEIGHT, WIN_WIDTH, graph_type, convex_hull_algos, line_segment_intersection_algos, mst_algos
+from constants import BORDER_OFFSET, WIN_HEIGHT, WIN_WIDTH, graph_type, convex_hull_algos, line_segment_intersection_algos, mst_algos
 import math_helper
 from point import Point
 
 import random
-
-
-# -------------------------
-# --------- Node ----------
-# -------------------------
-class Node:
-    _next_id = 0
-
-    def __init__(self, p:Point) -> None:
-        self.id = Node._next_id
-        Node._next_id += 1
-
-        self.p = p
-
-    def draw(self, screen, draw_compact=False, color=None) -> None:
-        if color == None:
-            color = constants.BLUE
-
-        if draw_compact:
-            w = NODE_COMPACT_SIZE
-            pygame.gfxdraw.box(screen, (self.p.x - w/2, self.p.y - w/2, w, w), color)
-        else:
-            pygame.gfxdraw.filled_circle(screen, self.p.x, self.p.y, NODE_FULL_SIZE, color)
-            pygame.gfxdraw.aacircle(screen, self.p.x, self.p.y, NODE_FULL_SIZE, constants.FOREGROUND)
-
-            text_surface = constants.font.render(f"{self.id}", True, (FOREGROUND))
-            text_rect = text_surface.get_rect(center=(self.p.x, self.p.y))
-            screen.blit(text_surface, text_rect)
-
-class NodeDrawContainer:
-    def __init__(self, n:Node, draw_compact:bool, color) -> None:
-        self.n = n
-        self.draw_compact = draw_compact
-        self.color = color
-
-    def draw(self, screen) -> None:
-        self.n.draw(screen, self.draw_compact, self.color)
-        
-
-
-
-
-# -------------------------
-# --------- Edge ----------
-# -------------------------
-class Edge:
-    _next_id: int = 0
-
-    def __init__(self, 
-                 a:Node,
-                 b:Node,
-                 weight=None) -> None:
-
-        self.id = Edge._next_id
-        Edge._next_id += 1
-
-        self.a  = a
-        self.b  = b
-
-        if weight == None:
-            self.weight: float = math_helper.distance(a.p, b.p)
-        else:
-            self.weight: float = weight
-
-
-    def draw(self, screen, color=None, width=1) -> None:
-
-        if color == None:
-            color = constants.EDGE_COLOR
-        pygame.draw.aaline(screen, 
-                           color,
-                           (self.a.p.x, self.a.p.y), 
-                           (self.b.p.x, self.b.p.y),
-                           width)
-
-class EdgeDrawContainer:
-    def __init__(self, e:Edge, color, width:int) -> None:
-        self.e     = e
-        self.color = color
-        self.width = width
-
-    def draw(self, screen) -> None:
-        self.e.draw(screen, self.color, self.width)
-
-    @staticmethod
-    def convert_edge_list_to_Drawable_list(edges: List[Edge], col, w:int) -> List['Drawable']:
-        edc_list: List[Drawable] = [
-            EdgeDrawContainer(e, color=col, width=w)
-            for e in edges
-        ]
-        return edc_list
-
-
-
 
 # --------------------------
 # --------- Graph ----------
@@ -211,7 +119,7 @@ class Graph:
                     draw_container: GraphDrawContainer = GraphDrawContainer()
 
                     # Add current Edge
-                    draw_container.add_layer(EdgeDrawContainer.convert_edge_list_to_Drawable_list([Edge(u,v)], constants.RED, 3))
+                    draw_container.add_layer(convert_edge_list_to_Drawable_list([Edge(u,v)], constants.RED, 3))
 
                     # Add asured CH edges
                     CH_layer: List[Drawable] = [
@@ -461,7 +369,7 @@ class Graph:
         others.remove(current)
         new_node: Node = others[0]
         others.append(current)
-        
+
         for _ in range(len(self.V)):
             # Find new node of CH
             for p in others:
@@ -470,7 +378,7 @@ class Graph:
 
                 if animate:
                     draw_container: GraphDrawContainer = GraphDrawContainer()
-                    
+
                     # Add CH
                     current_CH: List[Drawable] = []
                     for k in range(len(CH) - 1):
@@ -481,13 +389,13 @@ class Graph:
 
                     # Add currently considered new edge
                     draw_container.add_layer(
-                        EdgeDrawContainer.convert_edge_list_to_Drawable_list(
+                        convert_edge_list_to_Drawable_list(
                             [Edge(current, new_node)], constants.ORANGE, 3)
                     )
-                    
+
                     # Add edge that is currently tested
                     draw_container.add_layer(
-                        EdgeDrawContainer.convert_edge_list_to_Drawable_list(
+                        convert_edge_list_to_Drawable_list(
                             [Edge(current, p)], constants.RED, 3)
                     )
 
@@ -548,7 +456,7 @@ class Graph:
                     draw_container.add_layer(segments_layer)
 
                     # Add current Edges
-                    draw_container.add_layer(EdgeDrawContainer.convert_edge_list_to_Drawable_list(
+                    draw_container.add_layer(convert_edge_list_to_Drawable_list(
                         [self.E[i], self.E[j]], 
                         constants.RED, 3))
 
@@ -821,6 +729,13 @@ class CustomUnion:
 # -------------------------------
 
 Drawable = Union[NodeDrawContainer, EdgeDrawContainer]
+
+def convert_edge_list_to_Drawable_list(edges: List[Edge], col, w:int) -> List['Drawable']:
+    edc_list: List[Drawable] = [
+        EdgeDrawContainer(e, color=col, width=w)
+        for e in edges
+    ]
+    return edc_list
 
 class GraphDrawContainer:
     def __init__(self) -> None:
