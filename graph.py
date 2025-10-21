@@ -536,6 +536,38 @@ class Graph:
         p: Point = Point(0, 0)
         for i in range(len(self.E)-1):
             for j in range(i+1, len(self.E)):
+
+                if animate:
+                    draw_container: GraphDrawContainer = GraphDrawContainer()
+
+                    # Add segments for the end rendering
+                    segments_layer: List[Drawable] = [
+                        EdgeDrawContainer(e, color=constants.FOREGROUND, width=1)
+                        for e in self.E
+                    ]
+                    draw_container.add_layer(segments_layer)
+
+                    # Add current Edges
+                    draw_container.add_layer(EdgeDrawContainer.convert_edge_list_to_Drawable_list(
+                        [self.E[i], self.E[j]], 
+                        constants.RED, 3))
+
+                    # Add nodes for the end rendering
+                    nodes_layer: List[Drawable] = [
+                        NodeDrawContainer(n, draw_compact=True, color=constants.BLUE)
+                        for n in self.V
+                    ]
+                    draw_container.add_layer(nodes_layer)
+
+                    # Add intersection points
+                    intersections_draw: List[Drawable] = [
+                        NodeDrawContainer(n, draw_compact=True, color=constants.GREEN)
+                        for n in intersects
+                    ]
+                    draw_container.add_layer(intersections_draw)
+
+                    self.anim_step(draw_container)
+
                 if math_helper.point_line_segment_intersection(
                     self.E[i].a.p, self.E[i].b.p,
                     self.E[j].a.p, self.E[j].b.p, p):
@@ -649,7 +681,7 @@ class Graph:
         self._update_adjacency_matrix(a, b, new_edge)
 
         return True
-        
+
 
     def _gen_fully_connected(self, num_vertices=10) -> None:
         """
@@ -711,7 +743,7 @@ class Graph:
         print("Edges:")
         for i, edge in enumerate(self.E):
             print(f"edges[{i}]: {edge.a.id} -- {edge.b.id}")
-        
+
         print("\nAdjacency Matrix:")
         for node_id in sorted(self.adj_mat.keys()):
             neighbors = {}
@@ -768,7 +800,7 @@ class CustomUnion:
     def union(self, u:int, v:int) -> None:
         if u == v:
             return
-        
+
         rep_u = self._representatives[u]
         rep_v = self._representatives[v]
 
