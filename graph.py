@@ -6,7 +6,7 @@ from typing import Callable, Dict, List, Union
 from collections import defaultdict
 
 import constants
-from constants import BORDER_OFFSET, FOREGROUND, NODE_COMPACT_SIZE, NODE_FULL_SIZE, WIN_HEIGHT, WIN_WIDTH, graph_type, convex_hull_algos, mst_algos
+from constants import BORDER_OFFSET, FOREGROUND, NODE_COMPACT_SIZE, NODE_FULL_SIZE, WIN_HEIGHT, WIN_WIDTH, graph_type, convex_hull_algos, line_segment_intersection_algos, mst_algos
 import math_helper
 from point import Point
 
@@ -131,6 +131,10 @@ class Graph:
             convex_hull_algos.BRUTE_FORCE: self._CH_brute_force,
             convex_hull_algos.GRAHAM_SCAN: self._CH_graham_scan,
             convex_hull_algos.JARVIS_MARCH: self._CH_jarvis_march,
+        }
+
+        self._intersect_algos: Dict[line_segment_intersection_algos, Callable] = {
+            line_segment_intersection_algos.BRUTE_FORCE: self._LSI_brute_force,
         }
 
     def set_anim_step_callback(self, cb:Callable) -> None:
@@ -519,6 +523,26 @@ class Graph:
             others.append(CH[0])
 
         return CH
+
+    # --------------------------------------------------
+    # ----------- Line-segment intersection  ------------
+    # --------------------------------------------------
+    def calculate_line_segement_intersections(self, algo:line_segment_intersection_algos, animate=False) -> List[Node]:
+        intersect_algo = self._intersect_algos[algo]
+        return intersect_algo(animate)
+
+    def _LSI_brute_force(self, animate=False) -> List[Node]:
+        intersects: List[Node] = []
+        p: Point = Point(0, 0)
+        for i in range(len(self.E)-1):
+            for j in range(i+1, len(self.E)):
+                if math_helper.point_line_segment_intersection(
+                    self.E[i].a.p, self.E[i].b.p,
+                    self.E[j].a.p, self.E[j].b.p, p):
+
+                    intersects.append(Node(Point(p.x, p.y)))
+
+        return intersects
 
     # --------------------------------
     # ----------- Helper  ------------

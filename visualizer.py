@@ -1,4 +1,5 @@
 # pyright: reportMissingImports=false
+import random
 from typing import List
 import constants
 from graph import Edge, Graph, GraphDrawContainer, Node
@@ -14,6 +15,7 @@ class Visualizer:
         self.clock = pygame.time.Clock()
         self.CH: List[Node] = []
         self.MST: List[Edge] = []
+        self.intersections: List[Node] = []
 
     def reset_graph(self) -> None:
         """
@@ -29,6 +31,30 @@ class Visualizer:
         """
         self.reset_graph()
         self.G.generate_random_nodes(num_nodes)
+
+    def new_segments(self, num_segments=10) -> None:
+        """
+        `new_segments` generates `num_segments` random segments in the plane.
+        """
+        self.new_nodes(2 * num_segments);
+        nodes: List[Node] = self.G.V.copy()
+        for _ in range(num_segments):
+            u: Node = random.choice(nodes)
+            nodes.remove(u)
+            v: Node = random.choice(nodes)
+            nodes.remove(v)
+            self.G._add_edge(u, v)
+
+    def line_segment_intersection(self, algo: constants.line_segment_intersection_algos, animate=False):
+        """
+        `line_segment_intersection` finds all intersection between every line segments (edges).
+        If no set of segments (edges) is present a new number of segments will be generated.
+        """
+        if len(self.G.V) == 0:
+            self.new_segments()
+
+        self.intersections = self.G.calculate_line_segement_intersections(algo, animate)
+
 
     def new_graph(self, type: constants.graph_type, num_nodes=20) -> None:
         self.G.generate_graph(type, num_nodes)
@@ -63,6 +89,10 @@ class Visualizer:
 
     def render_nodes(self, compact=False, color=constants.ORANGE) -> None:
         self.G.draw_nodes(self.window.screen, color, compact)
+
+    def render_intersects(self, compact=False, color=constants.GREEN) -> None:
+        for v in self.intersections:
+            v.draw(self.window.screen, compact, color)
 
     def render_edges(self,
                      edge_color=constants.EDGE_COLOR,
