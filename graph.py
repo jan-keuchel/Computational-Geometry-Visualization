@@ -86,6 +86,12 @@ class Graph:
             self.V.append(Node(Point(x, y)))
 
 
+    def add_node(self, p:Point) -> None:
+        self.V.append(Node(p));
+
+    def pop_node(self) -> None:
+        self.V.pop()
+
     # -------------------------------------
     # ----------- Convex Hull  ------------
     # -------------------------------------
@@ -426,9 +432,12 @@ class Graph:
                 break
 
             # Choose new node that is not the "target" node
-            others.remove(CH[0])
-            new_node = others[0]
-            others.append(CH[0])
+            if len(others) > 1:
+                others.remove(CH[0])
+                new_node = others[0]
+                others.append(CH[0])
+            else:
+                new_node = others[0]
 
         return CH
 
