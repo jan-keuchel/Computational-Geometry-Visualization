@@ -3,6 +3,7 @@ import random
 from typing import List
 import constants
 from graph import Edge, Graph, GraphDrawContainer, Node
+from point import Point
 from window import Window
 import pygame
 
@@ -44,6 +45,37 @@ class Visualizer:
             v: Node = random.choice(nodes)
             nodes.remove(v)
             self.G._add_edge(u, v)
+
+    def new_custom_nodes(self) -> None:
+        """
+        `new_custom_nodes` switches to an interactive mode where the user 
+        can manually place nodes onto the plane via mouse clicks. Clicking
+        the left mouse button adds a node. Clicking the right mouse button
+        removes the last added node.
+        """
+        self.reset_graph()
+
+        continue_with_input = True
+        while continue_with_input:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:
+                        if len(self.G.V) < 3:
+                            print("Please add at least 3 vertices.")
+                            continue
+                        continue_with_input = False
+                        print("Done.")
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1: # LMB
+                        x,y = pygame.mouse.get_pos()
+                        self.G.add_node(Point(x, y))
+                    if event.button == 3: # RMB
+                        self.G.pop_node()
+                    self.clear_screen()
+                    self.render_nodes(True, constants.BLUE)
+                    self.render_screen()
+
+
 
     def line_segment_intersection(self, algo: constants.line_segment_intersection_algos, animate=False):
         """
