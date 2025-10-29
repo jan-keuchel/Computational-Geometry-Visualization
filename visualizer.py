@@ -65,6 +65,11 @@ class Visualizer:
                             continue
                         continue_with_input = False
                         print("Done.")
+
+                    if event.key == pygame.K_r:
+                        self.reset_graph()
+                        self.clear_screen()
+                        self.render_screen()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1: # LMB
                         x,y = pygame.mouse.get_pos()
