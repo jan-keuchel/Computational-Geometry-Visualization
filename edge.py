@@ -25,6 +25,12 @@ class Edge:
         else:
             self.weight: float = weight
 
+    def other(self, n:Node) -> Node:
+        if self.a == n:
+            return self.b
+        else:
+            return self.a
+
 
     def draw(self, screen, color=None, width=1) -> None:
 

@@ -44,14 +44,14 @@ class Visualizer:
             nodes.remove(u)
             v: Node = random.choice(nodes)
             nodes.remove(v)
-            self.G._add_edge(u, v)
+            self.G.add_edge(u, v)
 
     def new_custom_nodes(self) -> None:
         """
         `new_custom_nodes` switches to an interactive mode where the user 
         can manually place nodes onto the plane via mouse clicks. Clicking
         the left mouse button adds a node. Clicking the right mouse button
-        removes the last added node.
+        removes the last added node. Clicking "Return" submits the nodes.
         """
         self.reset_graph()
 
@@ -64,7 +64,6 @@ class Visualizer:
                             print("Please add at least 3 vertices.")
                             continue
                         continue_with_input = False
-                        print("Done.")
 
                     if event.key == pygame.K_r:
                         self.reset_graph()
@@ -79,6 +78,53 @@ class Visualizer:
                     self.clear_screen()
                     self.render_nodes(True, constants.BLUE)
                     self.render_screen()
+
+    def new_custom_polygon(self) -> None:
+        """
+        `new_custom_polygon` switches to an interactive mode where the user 
+        can manually place nodes onto the plane via mouse clicks. The nodes 
+        are connected, forming a chain and resulting in a polygon. Clicking
+        the left mouse button adds a node. Clicking the right mouse button
+        removes the last added node. Clicking "Return" results in a 
+        connection of the last placed node with the first placed node.
+        """
+        self.reset_graph()
+
+        continue_with_input = True
+        while continue_with_input:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:
+                        if len(self.G.V) < 3:
+                            print("Please add at least 3 vertices.")
+                            continue
+                        continue_with_input = False
+                        self.G.add_edge(
+                            self.G.V[0],
+                            self.G.V[-1]
+                        )
+
+                    if event.key == pygame.K_r:
+                        self.reset_graph()
+                        self.clear_screen()
+                        self.render_screen()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1: # LMB
+                        x,y = pygame.mouse.get_pos()
+                        self.G.add_node(Point(x, y))
+                        if len(self.G.V) > 1:
+                            self.G.add_edge(
+                                self.G.V[-2],
+                                self.G.V[-1]
+                            )
+                    if event.button == 3: # RMB
+                        self.G.pop_node()
+
+                    self.clear_screen()
+                    self.render_edges()
+                    self.render_nodes(True, constants.BLUE)
+                    self.render_screen()
+
 
 
 

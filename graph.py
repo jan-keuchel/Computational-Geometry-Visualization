@@ -90,7 +90,31 @@ class Graph:
         self.V.append(Node(p));
 
     def pop_node(self) -> None:
-        self.V.pop()
+        self.remove_node(self.V[-1])
+
+    def remove_node(self, n) -> None:
+
+        # Get all edges having n as vertex and other vertices
+        E: List[Edge] = list(self.adj_mat[n.id].values())
+        others: List[Node] = []
+        for e in E:
+            others.append(e.other(n))
+
+        # Delete edges from self.E
+        for e in E:
+            self.E.remove(e)
+
+        # Delete references to edges
+        for o in others:
+            del self.adj_mat[o.id][n.id]
+            del self.adj_mat[n.id]
+
+        # Delete n
+        self.V.remove(n)
+
+
+
+
 
     # -------------------------------------
     # ----------- Convex Hull  ------------
@@ -532,7 +556,7 @@ class Graph:
                     remaining_nodes.remove(u)
                     break
 
-        self._add_edge(new_edge.a, new_edge.b)
+        self.add_edge(new_edge.a, new_edge.b)
         return True
 
     def _add_random_ni_edge(self) -> bool:
@@ -571,15 +595,15 @@ class Graph:
 
     def _update_adjacency_matrix(self, a:Node, b:Node, e:Edge) -> None:
         """
-        `_update_adjacency_matrix` updates on cell of the adjacency
-        matrix with at the proivded index with the proivded edge.
+        `_update_adjacency_matrix` updates one cell of the adjacency
+        matrix at the proivded index with the proivded edge.
         """
         self.adj_mat[a.id][b.id] = e
         self.adj_mat[b.id][a.id] = e
 
-    def _add_edge(self, a:Node, b:Node) -> bool:
+    def add_edge(self, a:Node, b:Node) -> bool:
         """
-        `_add_edge` inserts a new edge into the list of edges `Graph.E`
+        `add_edge` inserts a new edge into the list of edges `Graph.E`
         and updates the adjacency matrix.
         Conditions:
         - Self-directed eges are ignored.
@@ -599,6 +623,18 @@ class Graph:
 
         return True
 
+    def remove_edge(self, to_remove:Edge) -> None:
+        """
+        `remove_edge` removes the edge from G.E and updates
+        the adjacency matrix.
+        """
+
+        u = to_remove.a
+        v = to_remove.b
+        if u.id in self.adj_mat and v.id in self.adj_mat[u.id]:
+            del self.adj_mat[u.id][v.id]
+
+        self.E.remove(to_remove)
 
     def _gen_fully_connected(self, num_vertices=10) -> None:
         """
@@ -608,7 +644,7 @@ class Graph:
 
         for i in range(len(self.V)):
             for j in range(i + 1, len(self.V)):
-                self._add_edge(self.V[i], self.V[j])
+                self.add_edge(self.V[i], self.V[j])
 
     def _gen_mst(self, num_vertices=10) -> None:
         """
