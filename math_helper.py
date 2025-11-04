@@ -18,7 +18,7 @@ def right_of(a1:Point, a2:Point, v:Point) -> float:
 
 def line_segment_intersection(a1:Point, a2:Point, b1:Point, b2:Point) -> bool:
     """
-    Returns `True` iff line A intersects with line B. Endpoints included.
+    Returns `True` iff line A intersects with line B. Endpoints excluded.
     """
     return ((right_of(a1, a2, b1) * right_of(a1, a2, b2) < 0) and 
             (right_of(b1, b2, a1) * right_of(b1, b2, a2) < 0))
@@ -56,3 +56,21 @@ def point_line_segment_intersection(a1:Point, a2:Point, b1:Point, b2:Point, p:Po
     p.y = int(y1 + t * (y2 - y1))
 
     return True
+
+def get_angle(a:Point, b:Point, c:Point) -> float:
+    """
+    `get_angle` returns the angle given by `a`, `b`, `c` with 
+    `b` being the center point and going from `c` to `a` in
+    counter-clockwise direction.
+    """
+    bc = (c.x - b.x, c.y - b.y)
+    ba = (a.x - b.x, a.y - b.y)
+
+    ang_bc = math.atan2(bc[1], bc[0])
+    ang_ba = math.atan2(ba[1], ba[0])
+
+    angle = ang_ba - ang_bc
+    if angle < 0:
+        angle += 2 * math.pi
+
+    return angle
