@@ -11,15 +11,22 @@ def main():
 
     vis = Visualizer()
 
-    vis.new_segments(10)
+    vis.clear_screen()
+    vis.render_screen()
 
-    vis.line_segment_intersection(constants.line_segment_intersection_algos.BRUTE_FORCE, animate=True)
+    # vis.new_segments(10)
+    # vis.new_custom_nodes()
+    vis.new_custom_polygon()
+
+    # vis.line_segment_intersection(constants.line_segment_intersection_algos.BRUTE_FORCE, animate=True)
+    vis.convex_hull(constants.convex_hull_algos.JARVIS_MARCH,animate=True)
 
     vis.clear_screen()
 
     vis.render_edges()
-    vis.render_nodes(compact=True)
-    vis.render_intersects(compact=True, color=constants.GREEN)
+    # vis.render_intersects(compact=True, color=constants.GREEN)
+    vis.render_convex_hull(constants.GREEN,edge_width=3)
+    vis.render_nodes(compact=False)
     
     vis.render_screen()
 

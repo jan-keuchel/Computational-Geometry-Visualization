@@ -1,8 +1,10 @@
 # pyright: reportMissingImports=false
+import math
 import random
 from typing import List
 import constants
 from graph import Edge, Graph, GraphDrawContainer, Node
+from math_helper import get_angle
 from point import Point
 from window import Window
 import pygame
@@ -125,7 +127,17 @@ class Visualizer:
                     self.render_nodes(True, constants.BLUE)
                     self.render_screen()
 
+        # Calculate inner angle sum to check for definition of
+        # polygon in counter-clockwise order of vertices
+        inner_angle_sum:float = 0
+        for i in range(len(self.G.V)):
+            inner_angle_sum += get_angle(self.G.V[i-1].p,
+                                         self.G.V[i].p,
+                                         self.G.V[(i+1) % len(self.G.V)].p)
 
+        # Reverse order if IAS != 180° * (n-2)
+        if math.degrees(inner_angle_sum) - (180 * (len(self.G.V) - 2)) > 1e-6:
+            self.G.V.reverse()
 
 
     def line_segment_intersection(self, algo: constants.line_segment_intersection_algos, animate=False):
