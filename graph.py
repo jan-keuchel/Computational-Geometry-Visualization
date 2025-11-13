@@ -160,7 +160,7 @@ class Graph:
 
                     # Add nodes for the end rendering
                     nodes_layer: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                        NodeDrawContainer(n, draw_compact=True, color=constants.BLUE)
                         for n in self.V
                     ]
                     draw_container.add_layer(nodes_layer)
@@ -228,14 +228,14 @@ class Graph:
 
                 # Add generic nodes
                 nodes_layer: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                    NodeDrawContainer(n, draw_compact=True, color=constants.BLUE)
                     for n in self.V
                 ]
                 draw_container.add_layer(nodes_layer)
 
                 # Add nodes in CH
                 CH_nodes: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=False, color=constants.RED)
+                    NodeDrawContainer(n, draw_compact=True, color=constants.RED)
                     for n in U
                 ]
                 draw_container.add_layer(CH_nodes)
@@ -262,14 +262,14 @@ class Graph:
 
                     # Add generic nodes
                     nodes_layer: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                        NodeDrawContainer(n, draw_compact=True, color=constants.BLUE)
                         for n in self.V
                     ]
                     draw_container.add_layer(nodes_layer)
 
                     # Add nodes in CH
                     CH_nodes: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=False, color=constants.RED)
+                        NodeDrawContainer(n, draw_compact=True, color=constants.RED)
                         for n in U
                     ]
                     draw_container.add_layer(CH_nodes)
@@ -311,14 +311,14 @@ class Graph:
 
                 # Add generic nodes
                 nodes_layer: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                    NodeDrawContainer(n, draw_compact=True, color=constants.BLUE)
                     for n in self.V
                 ]
                 draw_container.add_layer(nodes_layer)
 
                 # Add nodes in CH
                 CH_nodes: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=False, color=constants.RED)
+                    NodeDrawContainer(n, draw_compact=True, color=constants.RED)
                     for n in L
                 ]
                 draw_container.add_layer(CH_nodes)
@@ -351,14 +351,14 @@ class Graph:
 
                     # Add generic nodes
                     nodes_layer: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                        NodeDrawContainer(n, draw_compact=True, color=constants.BLUE)
                         for n in self.V
                     ]
                     draw_container.add_layer(nodes_layer)
 
                     # Add nodes in CH
                     CH_nodes: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=False, color=constants.RED)
+                        NodeDrawContainer(n, draw_compact=True, color=constants.RED)
                         for n in L
                     ]
                     draw_container.add_layer(CH_nodes)
@@ -431,14 +431,14 @@ class Graph:
 
                     # Add generic nodes
                     nodes_layer: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                        NodeDrawContainer(n, draw_compact=True, color=constants.BLUE)
                         for n in self.V
                     ]
                     draw_container.add_layer(nodes_layer)
 
                     # Add nodes in CH
                     CH_nodes: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=False, color=constants.RED)
+                        NodeDrawContainer(n, draw_compact=True, color=constants.RED)
                         for n in CH
                     ]
                     draw_container.add_layer(CH_nodes)
