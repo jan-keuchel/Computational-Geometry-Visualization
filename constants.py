@@ -4,8 +4,8 @@ from enum import Enum
 
 font = pygame.font.SysFont('Hack Nerd Font', 16)
 
-WIN_WIDTH = 800
-WIN_HEIGHT = 600
+WIN_WIDTH = 1000
+WIN_HEIGHT = 800
 BORDER_OFFSET = 30
 
 BLACK   = (0, 0, 0)
