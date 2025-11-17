@@ -47,5 +47,11 @@ class convex_hull_algos(Enum):
     JARVIS_MARCH                = 2
 
 
-class line_segment_intersection_algos(Enum):
+class lsi_algos(Enum):
     BRUTE_FORCE                 = 0
+
+
+class problem_types(Enum):
+    CH      = "Convex Hull"
+    LSI     = "Line-segment Intersection"
+    T       = "Triangulation"

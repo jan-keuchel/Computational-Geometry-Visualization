@@ -1,11 +1,12 @@
 # pyright: reportMissingImports=false
 import math
 import random
-from typing import List
+from typing import Callable, Dict, Generator, List
 import constants
-from graph import Edge, Graph, GraphDrawContainer, Node
+from graph import Drawable, Edge, Graph, GraphDrawContainer, Node
 from math_helper import get_angle
 from point import Point
+from state_machine import State, StateMachine
 from window import Window
 import pygame
 
@@ -13,12 +14,101 @@ import pygame
 class Visualizer:
     def __init__(self) -> None:
         self.window = Window(constants.WIN_WIDTH, constants.WIN_HEIGHT)
+        self.state_machine = StateMachine(self)
+
+        # The graph on which algorithms are performed
         self.G: Graph = Graph()
-        self.G.set_anim_step_callback(self.anim_step)
-        self.clock = pygame.time.Clock()
-        self.CH: List[Node] = []
-        self.MST: List[Edge] = []
-        self.intersections: List[Node] = []
+
+        # Animation control
+        self.fps          = 1
+        self.latest_state: GraphDrawContainer = GraphDrawContainer()
+
+        # The problem that is being solved currently
+        self.current_problem: constants.problem_types | None = None
+
+        # Generator functions for the different problems
+        self.algos_CH: Dict[constants.convex_hull_algos, Callable] = {
+            constants.convex_hull_algos.BRUTE_FORCE:  self.G.CH_brute_force,
+            constants.convex_hull_algos.GRAHAM_SCAN:  self.G.CH_graham_scan,
+            constants.convex_hull_algos.JARVIS_MARCH: self.G.CH_jarvis_march,
+        }
+        self.algos_LSI: Dict[constants.lsi_algos, Callable] = {
+            constants.lsi_algos.BRUTE_FORCE: self.G.LSI_brute_force,
+        }
+
+        # Generator objects per problem type
+        self.gen_CH:  Generator[GraphDrawContainer, None, List[Node]] | None = None
+        self.gen_LSI: Generator[GraphDrawContainer, None, List[Node]] | None = None
+
+        # Result data:
+        self.res_CH: List[Node] = []
+        self.res_LSI: List[Node] = []
+
+
+
+
+        # TODO: from earlier. need to adjust 
+        self.res_MST: List[Edge] = []
+
+    def process_input(self, event: pygame.event.Event) -> None:
+        self.state_machine.handle_event(event)
+
+    def get_state(self) -> State:
+        return self.state_machine.current_state
+
+    def increase_fps(self) -> None:
+        self.fps += 1
+
+    def decrease_fps(self) -> None:
+        if self.fps > 1:
+            self.fps -= 1
+
+    def set_problem(self, prob: constants.problem_types) -> None:
+        print("[Visualizer] New problem:", prob.value)
+        self.current_problem = prob
+
+    def set_algorithm(self, algo) -> None:
+        if self.current_problem == constants.problem_types.CH:
+            gen_func = self.algos_CH[algo]
+            self.gen_CH = gen_func()
+        elif self.current_problem == constants.problem_types.LSI:
+            gen_func = self.algos_LSI[algo]
+            self.gen_LSI = gen_func()
+        else:
+            print(f"Error: Problemtype is not set properly: {self.current_problem}, provided algorithm: {algo}")
+
+    def step(self) -> None:
+        self.step_simulation()
+
+        self.clear_screen()
+        self.render_state()
+        self.display_screen()
+    
+    def step_simulation(self) -> None:
+        print("[Visualizer] step")
+
+        if self.current_problem == constants.problem_types.CH:
+            if self.gen_CH is None:
+                print("Error: CH-generator not initialized.")
+                return
+
+            try:
+                self.latest_state = next(self.gen_CH)
+            except StopIteration as e:
+                self.state_machine.reset_state()
+                self.res_CH = e.value
+
+        elif self.current_problem == constants.problem_types.LSI:
+            if self.gen_LSI is None:
+                print("Error: LSI-generator not initialized.")
+                return
+
+            try:
+                self.latest_state = next(self.gen_LSI)
+            except StopIteration as e:
+                self.state_machine.reset_state()
+                self.res_LSI = e.value
+            
 
     def reset_graph(self) -> None:
         """
@@ -70,7 +160,7 @@ class Visualizer:
                     if event.key == pygame.K_r:
                         self.reset_graph()
                         self.clear_screen()
-                        self.render_screen()
+                        self.display_screen()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1: # LMB
                         x,y = pygame.mouse.get_pos()
@@ -79,7 +169,7 @@ class Visualizer:
                         self.G.pop_node()
                     self.clear_screen()
                     self.render_nodes(True, constants.BLUE)
-                    self.render_screen()
+                    self.display_screen()
 
     def new_custom_polygon(self) -> None:
         """
@@ -109,7 +199,7 @@ class Visualizer:
                     if event.key == pygame.K_r:
                         self.reset_graph()
                         self.clear_screen()
-                        self.render_screen()
+                        self.display_screen()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1: # LMB
                         x,y = pygame.mouse.get_pos()
@@ -125,7 +215,7 @@ class Visualizer:
                     self.clear_screen()
                     self.render_edges()
                     self.render_nodes(True, constants.BLUE)
-                    self.render_screen()
+                    self.display_screen()
 
         # Calculate inner angle sum to check for definition of
         # polygon in counter-clockwise order of vertices
@@ -139,38 +229,14 @@ class Visualizer:
         if math.degrees(inner_angle_sum) - (180 * (len(self.G.V) - 2)) > 1e-6:
             self.G.V.reverse()
 
-
-    def line_segment_intersection(self, algo: constants.line_segment_intersection_algos, animate=False):
-        """
-        `line_segment_intersection` finds all intersection between every line segments (edges).
-        If no set of segments (edges) is present a new number of segments will be generated.
-        """
-        if len(self.G.V) == 0:
-            self.new_segments()
-
-        self.intersections = self.G.calculate_line_segement_intersections(algo, animate)
-
-
     def new_graph(self, type: constants.graph_type, num_nodes=20) -> None:
         self.G.generate_graph(type, num_nodes)
-
-
-    def convex_hull(self, algo:constants.convex_hull_algos, animate=False) -> None:
-        """
-        `convex_hull` calcualtes the convex hull of the present set of nodes.
-        If no set of nodes is present a new set will be generated. The algorithm
-        used to caluclate the convex hull is specified in `algo`.
-        """
-        if len(self.G.V) == 0:
-            self.new_nodes()
-
-        self.CH = self.G.calculate_convex_hull(algo, animate)
 
     def mst(self, algo:constants.mst_algos) -> None:
         if self.G.E == None:
             self.new_nodes() # TODO: Generate fully connected
 
-        self.MST  = self.G.mst(algo)
+        self.res_MST  = self.G.mst(algo)
 
     # -------------------------------------------
     # ------------- Rendering -------------------
@@ -179,14 +245,24 @@ class Visualizer:
     def clear_screen(self) -> None:
         self.window.clear()
 
-    def render_screen(self) -> None:
+    def render_state(self) -> None:
+        items: List[Drawable] = self.latest_state.get_all_drawables()
+        for d in items:
+            d.draw(self.window.screen)
+
+    def update_screen(self) -> None:
+        self.clear_screen()
+        self.render_state()
+        self.display_screen()
+
+    def display_screen(self) -> None:
         self.window.render()
 
     def render_nodes(self, compact=False, color=constants.ORANGE) -> None:
         self.G.draw_nodes(self.window.screen, color, compact)
 
     def render_intersects(self, compact=False, color=constants.GREEN) -> None:
-        for v in self.intersections:
+        for v in self.res_LSI:
             v.draw(self.window.screen, compact, color)
 
     def render_edges(self,
@@ -214,29 +290,16 @@ class Visualizer:
     def render_mst(self,
                    edge_col=constants.GREEN,
                    edge_width=2) -> None:
-        if len(self.MST) == 0:
+        if len(self.res_MST) == 0:
             self.mst(constants.mst_algos.PRIMS)
 
-        for e in self.MST:
+        for e in self.res_MST:
             e.draw(self.window.screen, edge_col, edge_width)
 
     def render_convex_hull(self,
                            edge_color=constants.RED,
-                           edge_width=2,
-                           animate=False) -> None:
-        if self.CH == None:
-            self.convex_hull(constants.convex_hull_algos.BRUTE_FORCE, animate)
-
-        for i in range(len(self.CH)):
-            Edge(self.CH[i], self.CH[(i+1) % len(self.CH)]).draw(
+                           edge_width=2) -> None:
+        for i in range(len(self.res_CH)):
+            Edge(self.res_CH[i], self.res_CH[(i+1) % len(self.res_CH)]).draw(
                 self.window.screen, edge_color, edge_width
             )
-
-    def anim_step(self, graph_container:GraphDrawContainer) -> None:
-        self.clear_screen()
-        drawables = graph_container.get_all_drawables()
-        for drawable in drawables:
-            drawable.draw(self.window.screen)
-
-        self.render_screen()
-        self.clock.tick(constants.FPS)

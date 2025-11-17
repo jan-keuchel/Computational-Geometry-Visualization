@@ -3,6 +3,7 @@ import pygame
 pygame.init()
 pygame.font.init()
 
+from state_machine import State
 from visualizer import Visualizer
 import constants
 
@@ -10,31 +11,41 @@ import constants
 def main():
 
     vis = Visualizer()
-
-    vis.clear_screen()
-    vis.render_screen()
-
-    # vis.new_segments(10)
-    # vis.new_custom_nodes()
-    vis.new_custom_polygon()
-
-    # vis.line_segment_intersection(constants.line_segment_intersection_algos.BRUTE_FORCE, animate=True)
-    vis.convex_hull(constants.convex_hull_algos.JARVIS_MARCH,animate=True)
-
-    vis.clear_screen()
-
-    vis.render_edges()
-    # vis.render_intersects(compact=True, color=constants.GREEN)
-    vis.render_convex_hull(constants.GREEN,edge_width=3)
-    vis.render_nodes(compact=False)
-    
-    vis.render_screen()
+    clock = pygame.time.Clock()
 
     running = True
     while running:
+
+        # Handle input
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+                vis.clear_screen()
+                vis.display_screen()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:
+                    running = False
+                    vis.clear_screen()
+                    vis.display_screen()
+                else:
+                    vis.process_input(event)
+
+
+        if vis.get_state() == State.ANIMATE:
+            vis.step_simulation()
+            # vis.clear_screen()
+            # vis.render_state()
+            # vis.update_screen()
+            clock.tick(vis.fps)
+
+        if vis.get_state() == State.PAUSE:
+            clock.tick()
+
+
+        vis.clear_screen()
+        vis.render_state()
+        vis.display_screen()
 
     pygame.font.quit()
     pygame.quit()

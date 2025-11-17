@@ -1,6 +1,10 @@
 from enum import Enum
+from typing import Any, Callable
 
 import pygame
+
+import constants
+from constants import convex_hull_algos, lsi_algos, problem_types
 
 
 class State(Enum):
@@ -50,8 +54,8 @@ class StateMachine:
             pygame.K_q:         (State.NORMAL,      lambda: print("[quit]"),                                []),
         },
         State.GENERATE: {
-            pygame.K_n:         (State.GENERATE,    lambda: print("[Generating nodes]"),                    []),
-            pygame.K_s:         (State.GENERATE,    lambda: print("[Generating segments]"),                 []),
+            pygame.K_n:         (State.GENERATE,    'new_nodes',                                            []),
+            pygame.K_s:         (State.GENERATE,    'new_segments',                                         []),
             pygame.K_ESCAPE:    (State.NORMAL,      None,                                                   []),
             pygame.K_q:         (State.NORMAL,      lambda: print("[quit]"),                                []),
         },
@@ -80,40 +84,39 @@ class StateMachine:
             pygame.K_q:         (State.NORMAL,      lambda: print("[quit]"),                                []),
         },
         State.RUN: {
-            pygame.K_c:         (State.CH,          None,                                                   []),
-            pygame.K_t:         (State.T,           None,                                                   []),
-            pygame.K_l:         (State.LSI,         None,                                                   []),
+            pygame.K_c:         (State.CH,          'set_problem',                                          [problem_types.CH]),
+            # pygame.K_t:         (State.T,           'set_problem',                                          [problem_types.T]),
+            pygame.K_l:         (State.LSI,         'set_problem',                                          [problem_types.LSI]),
             pygame.K_ESCAPE:    (State.NORMAL,      None,                                                   []),
             pygame.K_q:         (State.NORMAL,      lambda: print("[quit]"),                                []),
         },
         State.CH: {
-            pygame.K_0:         (State.PAUSE,       lambda: print("[Running algo 0]"),                      []),
-            pygame.K_1:         (State.PAUSE,       lambda: print("[Running algo 1]"),                      []),
-            pygame.K_2:         (State.PAUSE,       lambda: print("[Running algo 2]"),                      []),
+            pygame.K_0:         (State.PAUSE,       'set_algorithm',                                        [convex_hull_algos.BRUTE_FORCE]),
+            pygame.K_1:         (State.PAUSE,       'set_algorithm',                                        [convex_hull_algos.GRAHAM_SCAN]),
+            pygame.K_2:         (State.PAUSE,       'set_algorithm',                                        [convex_hull_algos.JARVIS_MARCH]),
             pygame.K_ESCAPE:    (State.RUN,         None,                                                   []),
             pygame.K_q:         (State.NORMAL,      lambda: print("[quit]"),                                []),
         },
         State.LSI: {
-            pygame.K_0:         (State.PAUSE,       lambda: print("[Running algo 0]"),                      []),
-            pygame.K_1:         (State.PAUSE,       lambda: print("[Running algo 1]"),                      []),
+            pygame.K_0:         (State.PAUSE,       'set_algorithm',                                        [lsi_algos.BRUTE_FORCE]),
             pygame.K_ESCAPE:    (State.RUN,         None,                                                   []),
             pygame.K_q:         (State.NORMAL,      lambda: print("[quit]"),                                []),
         },
-        State.T: {
-            pygame.K_0:         (State.PAUSE,       lambda: print("[Running algo 0]"),                      []),
-            pygame.K_ESCAPE:    (State.RUN,         None,                                                   []),
-            pygame.K_q:         (State.NORMAL,      lambda: print("[quit]"),                                []),
-        },
+        # State.T: {
+        #     pygame.K_0:         (State.PAUSE,       lambda: print("[Running algo 0]"),                      []),
+        #     pygame.K_ESCAPE:    (State.RUN,         None,                                                   []),
+        #     pygame.K_q:         (State.NORMAL,      lambda: print("[quit]"),                                []),
+        # },
         State.PAUSE: {
             pygame.K_SPACE:     (State.ANIMATE,     None,                                                   []),
-            pygame.K_RETURN:    (State.PAUSE,       lambda: print("[Manual step]"),                         []),
+            pygame.K_RETURN:    (State.PAUSE,       'step',                                                 []),
             pygame.K_ESCAPE:    (State.NORMAL,      None,                                                   []),
             pygame.K_q:         (State.NORMAL,      lambda: print("[quit]"),                                []),
         },
         State.ANIMATE: {
             pygame.K_SPACE:     (State.PAUSE,       None,                                                   []),
-            pygame.K_UP:        (State.ANIMATE,     lambda: print("[Inc. FPS]"),                            []),
-            pygame.K_DOWN:      (State.ANIMATE,     lambda: print("[Dec. FPS]"),                            []),
+            pygame.K_UP:        (State.ANIMATE,     'increase_fps',                                         []),
+            pygame.K_DOWN:      (State.ANIMATE,     'decrease_fps',                                         []),
             pygame.K_ESCAPE:    (State.NORMAL,      None,                                                   []),
             pygame.K_q:         (State.NORMAL,      lambda: print("[quit]"),                                []),
         },
@@ -167,7 +170,7 @@ class StateMachine:
                             "  q   : quit application"],
         State.RUN: ["RUN",
                     "  c   : CONVEX HULL menu",
-                    "  t   : TRIANGULATION menu",
+                    # "  t   : TRIANGULATION menu",
                     "  l   : LINE-SEGMENT INTERSECTION menu",
                     "  ESC : NORMAL menu",
                     "  q   : quit application"],
@@ -179,7 +182,6 @@ class StateMachine:
                    "  q   : quit application"],
         State.LSI: ["LINE-SEGMENT INTERSECTION",
                   "  0   : Brute Force",
-                  "  1   : Bentley-Ottmann",
                   "  ESC : NORMAL menu",
                   "  q   : quit application"],
         State.T: ["TRIANGULATION",
@@ -199,9 +201,10 @@ class StateMachine:
                         "  q     : quit application"],
     }
 
-    def __init__(self) -> None:
+    def __init__(self, vis: Any=None) -> None:
         self.current_state = State.NORMAL
         self._print_help()
+        self.vis = vis
 
     def handle_event(self, event: pygame.event.Event) -> None:
         transition = self._TRANSITIONS.get(self.current_state, {}).get(event.key)
@@ -209,9 +212,16 @@ class StateMachine:
             return
 
         new_state, action, args = transition
-        self.current_state = new_state
+        if self.current_state != new_state:
+            self.current_state = new_state
+            self._print_help()
 
-        # TODO: call function on visualizer
+        if isinstance(action, str) and self.vis is not None:
+            method = getattr(self.vis, action, None)
+            if method:
+                method(*args)
+        elif callable(action):
+            action()
 
     def reset_state(self) -> None:
         self.current_state = State.NORMAL
