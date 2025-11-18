@@ -18,6 +18,10 @@ class Visualizer:
         # The graph on which algorithms are performed
         self.G: Graph = Graph()
 
+        # Generation of input
+        self.number_of_nodes_to_generate = 10
+        self.number_of_segments_to_generate = 10
+
         # State and menu management
         self.state_machine = StateMachine()
         self.set_sm_actions()
@@ -57,8 +61,13 @@ class Visualizer:
         self.state_machine.set_action(State.DEL_NODES, pygame.K_a, self.G.clear_vertices)
         self.state_machine.set_action(State.DEL_EDGES, pygame.K_a, self.G.clear_edges)
 
-        self.state_machine.set_action(State.GENERATE, pygame.K_n, self.helper_new_nodes_and_render)
-        self.state_machine.set_action(State.GENERATE, pygame.K_s, self.helper_new_segments_and_render)
+        self.state_machine.set_action(State.GEN_NODES, pygame.K_RETURN, self.helper_new_nodes_and_render)
+        self.state_machine.set_action(State.GEN_NODES, pygame.K_UP, lambda: self.helper_update_num_nodes_gen(1))
+        self.state_machine.set_action(State.GEN_NODES, pygame.K_DOWN, lambda: self.helper_update_num_nodes_gen(-1))
+
+        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_RETURN, self.helper_new_segments_and_render)
+        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_UP, lambda: self.helper_update_num_segments_gen(1))
+        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_DOWN, lambda: self.helper_update_num_segments_gen(-1))
 
         self.state_machine.set_action(State.RUN, pygame.K_c, lambda: self.set_problem(constants.problem_types.CH))
         self.state_machine.set_action(State.RUN, pygame.K_t, lambda: self.set_problem(constants.problem_types.T))
@@ -76,12 +85,26 @@ class Visualizer:
         self.state_machine.set_action(State.ANIMATE, pygame.K_DOWN, self.decrease_fps)
 
     def helper_new_nodes_and_render(self) -> None:
-        self.new_nodes()
+        self.new_nodes(self.number_of_nodes_to_generate)
         self.update_screen()
 
+    def helper_update_num_nodes_gen(self, delta: int) -> None:
+        if delta > 0:
+            self.number_of_nodes_to_generate += 1
+        elif self.number_of_nodes_to_generate > 0:
+            self.number_of_nodes_to_generate -= 1
+        self.helper_new_nodes_and_render()
+
     def helper_new_segments_and_render(self) -> None:
-        self.new_segments()
+        self.new_segments(self.number_of_segments_to_generate)
         self.update_screen()
+
+    def helper_update_num_segments_gen(self, delta: int) -> None:
+        if delta > 0:
+            self.number_of_segments_to_generate += 1
+        elif self.number_of_segments_to_generate > 0:
+            self.number_of_segments_to_generate -= 1
+        self.new_segments(self.number_of_segments_to_generate)
 
     def process_input(self, event: pygame.event.Event) -> None:
         self.state_machine.handle_event(event)

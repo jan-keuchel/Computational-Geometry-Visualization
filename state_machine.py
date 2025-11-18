@@ -8,22 +8,24 @@ from constants import convex_hull_algos, lsi_algos, problem_types
 
 
 class State(Enum):
-    NORMAL      = "NORMAL"
-    DELETE      = "DELETE"
-    DEL_NODES   = "DEL_NODES"
-    DEL_EDGES   = "DEL_EDGES"
-    GENERATE    = "GENERATE"
-    INSERT      = "INSERT"
-    INS_NODES   = "INS_NODES"
-    INS_EDGE    = "INS_EDGE"
-    INS_POLYGON = "INS_POLYGON"
-    INS_SEGMENT = "INS_SEGMENT"
-    RUN         = "RUN"
-    CH          = "CONVEX HULL"
-    LSI         = "LINE-SEGMENT INTERSECTION"
-    T           = "TRIANGULATION"
-    PAUSE       = "PAUSE"
-    ANIMATE     = "ANIMATE"
+    NORMAL       = "NORMAL"
+    DELETE       = "DELETE"
+    DEL_NODES    = "DEL_NODES"
+    DEL_EDGES    = "DEL_EDGES"
+    GENERATE     = "GENERATE"
+    GEN_NODES    = "GENERATE_NODES"
+    GEN_SEGMENTS = "GENERATE_SEGMENTS"
+    INSERT       = "INSERT"
+    INS_NODES    = "INS_NODES"
+    INS_EDGE     = "INS_EDGE"
+    INS_POLYGON  = "INS_POLYGON"
+    INS_SEGMENT  = "INS_SEGMENT"
+    RUN          = "RUN"
+    CH           = "CONVEX HULL"
+    LSI          = "LINE-SEGMENT INTERSECTION"
+    T            = "TRIANGULATION"
+    PAUSE        = "PAUSE"
+    ANIMATE      = "ANIMATE"
 
 
 class StateMachine:
@@ -56,7 +58,17 @@ class StateMachine:
                 pygame.K_q: State.NORMAL,
             },
             State.GENERATE: {
+                pygame.K_n: State.GEN_NODES,
+                pygame.K_s: State.GEN_SEGMENTS,
                 pygame.K_ESCAPE: State.NORMAL,
+                pygame.K_q: State.NORMAL,
+            },
+            State.GEN_NODES: {
+                pygame.K_ESCAPE: State.GENERATE,
+                pygame.K_q: State.NORMAL,
+            },
+            State.GEN_SEGMENTS: {
+                pygame.K_ESCAPE: State.GENERATE,
                 pygame.K_q: State.NORMAL,
             },
             State.INSERT: {
@@ -142,10 +154,22 @@ class StateMachine:
                               "  ESC   : NORMAL menu",
                               "  q     : quit application"],
             State.GENERATE: ["GENERATE",
-                             "  n   : generate random nodes",
-                             "  s   : generate random segments",
+                             "  n   : GENERATE NODES",
+                             "  s   : GENERATE SEGMENTS",
                              "  ESC : NORMAL menu",
                              "  q   : quit application"],
+            State.GEN_NODES: ["GENERATE NODES",
+                              "  RETURN : generate random rondes",
+                              "  UP     : increment number of nodes",
+                              "  DOWN   : decrement number of nodes",
+                              "  ESC    : NORMAL menu",
+                              "  q      : quit application"],
+            State.GEN_SEGMENTS: ["GENERATE SEGMENTS",
+                              "  RETURN : generate random segments",
+                              "  UP     : increment number of segments",
+                              "  DOWN   : decrement number of segments",
+                              "  ESC    : NORMAL menu",
+                              "  q      : quit application"],
             State.INSERT: ["INSERT",
                            "  n   : INSERT_NODES menu",
                            "  e   : INSERT_EDGES menu",
