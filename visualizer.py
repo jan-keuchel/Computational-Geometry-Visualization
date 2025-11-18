@@ -168,7 +168,7 @@ class Visualizer:
         `reset_graph` deletes all calcualted structures such as 
         convex hulls or MSTs. The nodes stay the same.
         """
-        self.G.empty_graph()
+        self.G.reset_graph()
 
     def new_nodes(self, num_nodes=10) -> None:
         """

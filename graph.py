@@ -605,9 +605,10 @@ class Graph:
         # TODO
         return True
 
-    def empty_graph(self) -> None:
+    def reset_graph(self) -> None:
         self.clear_edges()
         self.clear_vertices()
+        Node._next_id = 0
 
     def clear_edges(self) -> None:
         """
