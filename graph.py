@@ -37,7 +37,9 @@ class GraphDrawContainer:
     @classmethod
     def convert_node_chain_to_GDC(cls, 
                                   nodes: List[Node],
-                                  col, w:int) -> 'GraphDrawContainer':
+                                  n_col, 
+                                  e_col,
+                                  w:int) -> 'GraphDrawContainer':
 
         gdc: 'GraphDrawContainer' = GraphDrawContainer()
 
@@ -45,18 +47,18 @@ class GraphDrawContainer:
         for i in range(len(nodes) - 1):
             edc_list.append(EdgeDrawContainer(
                 Edge(nodes[i], nodes[i+1]), 
-                col,
+                e_col,
                 w
             ))
         edc_list.append((EdgeDrawContainer(
             Edge(nodes[-1], nodes[0]),
-            col,
+            e_col,
             w
         )))
         gdc.add_layer(edc_list)
 
         nodes_layer: List[Drawable] = [
-            NodeDrawContainer(n, col)
+            NodeDrawContainer(n, n_col)
             for n in nodes
         ]
         gdc.add_layer(nodes_layer)

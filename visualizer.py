@@ -238,7 +238,7 @@ class Visualizer:
                     if event.button == 3: # RMB
                         self.G.pop_node()
                     self.clear_screen()
-                    self.render_nodes(True, constants.BLUE)
+                    self.render_nodes(constants.BLUE)
                     self.display_screen()
 
     def new_custom_polygon(self) -> None:
@@ -284,7 +284,7 @@ class Visualizer:
 
                     self.clear_screen()
                     self.render_edges()
-                    self.render_nodes(True, constants.BLUE)
+                    self.render_nodes(constants.BLUE)
                     self.display_screen()
 
         # Calculate inner angle sum to check for definition of
@@ -331,7 +331,7 @@ class Visualizer:
         self.G.draw(self.window.screen, constants.EDGE_COLOR, node_col=constants.BLUE)
         
         if self.current_problem == constants.problem_types.CH:
-            self.latest_simulation_state = GraphDrawContainer.convert_node_chain_to_GDC(self.res_CH, constants.GREEN, 5)
+            self.latest_simulation_state = GraphDrawContainer.convert_node_chain_to_GDC(self.res_CH, constants.RED, constants.GREEN, 5)
         elif self.current_problem == constants.problem_types.LSI:
             gdc: GraphDrawContainer = GraphDrawContainer()
             intersections: List[Drawable] = [
