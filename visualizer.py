@@ -84,6 +84,16 @@ class Visualizer:
         self.state_machine.set_action(State.ANIMATE, pygame.K_UP, self.increase_fps)
         self.state_machine.set_action(State.ANIMATE, pygame.K_DOWN, self.decrease_fps)
 
+        self.forall_states_set_action(pygame.K_MINUS, self.toggle_compact_nodes)
+
+    
+    def forall_states_set_action(self, key: int, func: Callable) -> None:
+        for state in State:
+            self.state_machine.set_action(state, key, func)
+
+    def toggle_compact_nodes(self) -> None:
+        Node.compact_nodes = not Node.compact_nodes
+
     def helper_new_nodes_and_render(self) -> None:
         self.new_nodes(self.number_of_nodes_to_generate)
         self.update_screen()
@@ -305,19 +315,19 @@ class Visualizer:
 
     def update_screen(self) -> None:
         self.clear_screen()
-        self.G.draw(self.window.screen, constants.EDGE_COLOR, node_col=constants.BLUE, node_draw_compact=True)
+        self.G.draw(self.window.screen, constants.EDGE_COLOR, node_col=constants.BLUE)
         self.render_state()
         self.display_screen()
 
     def display_screen(self) -> None:
         self.window.render()
 
-    def render_nodes(self, compact=False, color=constants.ORANGE) -> None:
-        self.G.draw_nodes(self.window.screen, color, compact)
+    def render_nodes(self, color=constants.ORANGE) -> None:
+        self.G.draw_nodes(self.window.screen, color)
 
-    def render_intersects(self, compact=False, color=constants.GREEN) -> None:
+    def render_intersects(self, color=constants.GREEN) -> None:
         for v in self.res_LSI:
-            v.draw(self.window.screen, compact, color)
+            v.draw(self.window.screen, color)
 
     def render_edges(self,
                      edge_color=constants.EDGE_COLOR,
@@ -331,14 +341,12 @@ class Visualizer:
     def render_graph(self, 
                      edge_color=constants.EDGE_COLOR,
                      edge_width=1,
-                     compact=False,
                      node_col=constants.ORANGE) -> None:
         self.G.draw(
             self.window.screen,
             edge_col=edge_color,
             edge_width=edge_width,
             node_col=node_col,
-            node_draw_compact=compact
         )
 
     def render_mst(self,

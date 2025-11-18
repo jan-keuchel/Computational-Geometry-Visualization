@@ -73,8 +73,8 @@ class Graph:
 
         self._convex_hull_algos: Dict[convex_hull_algos, Callable] = {
             convex_hull_algos.BRUTE_FORCE: self.CH_brute_force,
-            # convex_hull_algos.GRAHAM_SCAN: self.CH_graham_scan,
-            # convex_hull_algos.JARVIS_MARCH: self.CH_jarvis_march,
+            convex_hull_algos.GRAHAM_SCAN: self.CH_graham_scan,
+            convex_hull_algos.JARVIS_MARCH: self.CH_jarvis_march,
         }
 
         self._intersect_algos: Dict[lsi_algos, Callable] = {
@@ -195,7 +195,7 @@ class Graph:
 
                 # Add nodes for the end rendering
                 nodes_layer: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                    NodeDrawContainer(n, color=constants.BLUE)
                     for n in self.V
                 ]
                 draw_container.add_layer(nodes_layer)
@@ -265,14 +265,14 @@ class Graph:
 
             # Add generic nodes
             nodes_layer: List[Drawable] = [
-                NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                NodeDrawContainer(n, color=constants.BLUE)
                 for n in self.V
             ]
             draw_container.add_layer(nodes_layer)
 
             # Add nodes in CH
             CH_nodes: List[Drawable] = [
-                NodeDrawContainer(n, draw_compact=False, color=constants.RED)
+                NodeDrawContainer(n, color=constants.RED)
                 for n in U
             ]
             draw_container.add_layer(CH_nodes)
@@ -300,14 +300,14 @@ class Graph:
 
                 # Add generic nodes
                 nodes_layer: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                    NodeDrawContainer(n, color=constants.BLUE)
                     for n in self.V
                 ]
                 draw_container.add_layer(nodes_layer)
 
                 # Add nodes in CH
                 CH_nodes: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=False, color=constants.RED)
+                    NodeDrawContainer(n, color=constants.RED)
                     for n in U
                 ]
                 draw_container.add_layer(CH_nodes)
@@ -350,14 +350,14 @@ class Graph:
 
             # Add generic nodes
             nodes_layer: List[Drawable] = [
-                NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                NodeDrawContainer(n, color=constants.BLUE)
                 for n in self.V
             ]
             draw_container.add_layer(nodes_layer)
 
             # Add nodes in CH
             CH_nodes: List[Drawable] = [
-                NodeDrawContainer(n, draw_compact=False, color=constants.RED)
+                NodeDrawContainer(n, color=constants.RED)
                 for n in L
             ]
             draw_container.add_layer(CH_nodes)
@@ -392,14 +392,14 @@ class Graph:
 
                 # Add generic nodes
                 nodes_layer: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                    NodeDrawContainer(n, color=constants.BLUE)
                     for n in self.V
                 ]
                 draw_container.add_layer(nodes_layer)
 
                 # Add nodes in CH
                 CH_nodes: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=False, color=constants.RED)
+                    NodeDrawContainer(n, color=constants.RED)
                     for n in L
                 ]
                 draw_container.add_layer(CH_nodes)
@@ -472,14 +472,14 @@ class Graph:
 
                 # Add generic nodes
                 nodes_layer: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=False, color=constants.BLUE)
+                    NodeDrawContainer(n, color=constants.BLUE)
                     for n in self.V
                 ]
                 draw_container.add_layer(nodes_layer)
 
                 # Add nodes in CH
                 CH_nodes: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=False, color=constants.RED)
+                    NodeDrawContainer(n, color=constants.RED)
                     for n in CH
                 ]
                 draw_container.add_layer(CH_nodes)
@@ -532,14 +532,14 @@ class Graph:
 
                 # Add nodes for the end rendering
                 nodes_layer: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=True, color=constants.BLUE)
+                    NodeDrawContainer(n, color=constants.BLUE)
                     for n in self.V
                 ]
                 draw_container.add_layer(nodes_layer)
 
                 # Add intersection points
                 intersections_draw: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=True, color=constants.GREEN)
+                    NodeDrawContainer(n, color=constants.GREEN)
                     for n in intersects
                 ]
                 draw_container.add_layer(intersections_draw)
@@ -713,9 +713,9 @@ class Graph:
     # --------- Rendering ----------
     # ------------------------------
 
-    def draw(self, screen, edge_col=None, edge_width=1, node_col=None, node_draw_compact=False) -> None:
+    def draw(self, screen, edge_col=None, edge_width=1, node_col=None) -> None:
         self.draw_edges(screen, edge_col, edge_width)
-        self.draw_nodes(screen, node_col, node_draw_compact)
+        self.draw_nodes(screen, node_col)
 
     def draw_edges(self, screen, color=None, width=1) -> None:
         if color == None:
@@ -723,11 +723,11 @@ class Graph:
         for e in self.E:
             e.draw(screen, color, width)
 
-    def draw_nodes(self, screen, color=None, draw_compact=False) -> None:
+    def draw_nodes(self, screen, color=constants.BLUE) -> None:
         if color == None:
             color = constants.FOREGROUND
         for v in self.V:
-            v.draw(screen, draw_compact)
+            v.draw(screen)
 
     def print(self) -> None:
         print("Nodes:")
