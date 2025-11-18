@@ -24,14 +24,45 @@ import random
 
 Drawable = Union[NodeDrawContainer, EdgeDrawContainer]
 
-def convert_edge_list_to_Drawable_list(edges: List[Edge], col, w:int) -> List['Drawable']:
-    edc_list: List[Drawable] = [
-        EdgeDrawContainer(e, color=col, width=w)
-        for e in edges
-    ]
-    return edc_list
-
 class GraphDrawContainer:
+
+    @classmethod
+    def convert_edge_list_to_Drawable_list(cls, edges: List[Edge], col, w:int) -> List['Drawable']:
+        edc_list: List[Drawable] = [
+            EdgeDrawContainer(e, color=col, width=w)
+            for e in edges
+        ]
+        return edc_list
+
+    @classmethod
+    def convert_node_chain_to_GDC(cls, 
+                                  nodes: List[Node],
+                                  col, w:int) -> 'GraphDrawContainer':
+
+        gdc: 'GraphDrawContainer' = GraphDrawContainer()
+
+        edc_list: List[Drawable] = []
+        for i in range(len(nodes) - 1):
+            edc_list.append(EdgeDrawContainer(
+                Edge(nodes[i], nodes[i+1]), 
+                col,
+                w
+            ))
+        edc_list.append((EdgeDrawContainer(
+            Edge(nodes[-1], nodes[0]),
+            col,
+            w
+        )))
+        gdc.add_layer(edc_list)
+
+        nodes_layer: List[Drawable] = [
+            NodeDrawContainer(n, col)
+            for n in nodes
+        ]
+        gdc.add_layer(nodes_layer)
+
+        return gdc
+
     def __init__(self) -> None:
         self.layers: List[List[Drawable]] = []
 
@@ -184,7 +215,7 @@ class Graph:
                 draw_container: GraphDrawContainer = GraphDrawContainer()
 
                 # Add current Edge
-                draw_container.add_layer(convert_edge_list_to_Drawable_list([Edge(u,v)], constants.RED, 3))
+                draw_container.add_layer(GraphDrawContainer.convert_edge_list_to_Drawable_list([Edge(u,v)], constants.RED, 3))
 
                 # Add asured CH edges
                 CH_layer: List[Drawable] = [
@@ -460,13 +491,13 @@ class Graph:
 
                 # Add currently considered new edge
                 draw_container.add_layer(
-                    convert_edge_list_to_Drawable_list(
+                    GraphDrawContainer.convert_edge_list_to_Drawable_list(
                         [Edge(current, new_node)], constants.ORANGE, 3)
                 )
 
                 # Add edge that is currently tested
                 draw_container.add_layer(
-                    convert_edge_list_to_Drawable_list(
+                    GraphDrawContainer.convert_edge_list_to_Drawable_list(
                         [Edge(current, p)], constants.RED, 3)
                 )
 
@@ -526,7 +557,7 @@ class Graph:
                 draw_container.add_layer(segments_layer)
 
                 # Add current Edges
-                draw_container.add_layer(convert_edge_list_to_Drawable_list(
+                draw_container.add_layer(GraphDrawContainer.convert_edge_list_to_Drawable_list(
                     [self.E[i], self.E[j]], 
                     constants.RED, 3))
 

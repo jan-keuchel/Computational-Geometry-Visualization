@@ -5,6 +5,7 @@ from typing import Callable, Dict, Generator, List
 import constants
 from graph import Drawable, Edge, Graph, GraphDrawContainer, Node
 from math_helper import get_angle
+from node import NodeDrawContainer
 from point import Point
 from state_machine import State, StateMachine
 from window import Window
@@ -164,6 +165,7 @@ class Visualizer:
             except StopIteration as e:
                 self.state_machine.reset_state()
                 self.res_CH = e.value
+                self.render_result()
 
         elif self.current_problem == constants.problem_types.LSI:
             if self.gen_LSI is None:
@@ -175,6 +177,7 @@ class Visualizer:
             except StopIteration as e:
                 self.state_machine.reset_state()
                 self.res_LSI = e.value
+                self.render_result()
             
 
     def reset_graph(self) -> None:
@@ -320,6 +323,24 @@ class Visualizer:
     def update_screen(self) -> None:
         self.clear_screen()
         self.G.draw(self.window.screen, constants.EDGE_COLOR, node_col=constants.BLUE)
+        self.render_state()
+        self.display_screen()
+
+    def render_result(self) -> None:
+        self.clear_screen()
+        self.G.draw(self.window.screen, constants.EDGE_COLOR, node_col=constants.BLUE)
+        
+        if self.current_problem == constants.problem_types.CH:
+            self.latest_simulation_state = GraphDrawContainer.convert_node_chain_to_GDC(self.res_CH, constants.GREEN, 5)
+        elif self.current_problem == constants.problem_types.LSI:
+            gdc: GraphDrawContainer = GraphDrawContainer()
+            intersections: List[Drawable] = [
+                NodeDrawContainer(n, constants.GREEN)
+                for n in self.res_LSI
+            ]
+            gdc.add_layer(intersections)
+            self.latest_simulation_state = gdc
+
         self.render_state()
         self.display_screen()
 
