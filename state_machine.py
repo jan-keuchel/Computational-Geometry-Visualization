@@ -56,8 +56,6 @@ class StateMachine:
                 pygame.K_q: State.NORMAL,
             },
             State.GENERATE: {
-                pygame.K_n: State.GENERATE, # action
-                pygame.K_s: State.GENERATE, # action
                 pygame.K_ESCAPE: State.NORMAL,
                 pygame.K_q: State.NORMAL,
             },
@@ -111,14 +109,11 @@ class StateMachine:
             # },
             State.PAUSE: {
                 pygame.K_SPACE: State.ANIMATE,
-                pygame.K_RETURN: State.PAUSE, # action
                 pygame.K_ESCAPE: State.NORMAL,
                 pygame.K_q: State.NORMAL,
             },
             State.ANIMATE: {
                 pygame.K_SPACE: State.PAUSE,
-                pygame.K_UP: State.ANIMATE, # action
-                pygame.K_DOWN: State.ANIMATE, # action
                 pygame.K_ESCAPE: State.NORMAL,
                 pygame.K_q: State.NORMAL,
             },
@@ -209,13 +204,13 @@ class StateMachine:
         self._ACTIONS[(state, event)] = func
 
     def handle_event(self, event: pygame.event.Event) -> None:
-        new_state = self._TRANSITIONS.get(self.current_state, {}).get(event.key)
-        if new_state is None:
-            return
-
         action = self._ACTIONS.get((self.current_state, event.key), None)
         if action is not None:
             action()
+
+        new_state = self._TRANSITIONS.get(self.current_state, {}).get(event.key)
+        if new_state is None:
+            return
 
         if self.current_state != new_state:
             self.current_state = new_state
