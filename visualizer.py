@@ -10,6 +10,7 @@ from point import Point
 from state_machine import State, StateMachine
 from window import Window
 import pygame
+import pygame.mouse
 
 
 class Visualizer:
@@ -59,8 +60,18 @@ class Visualizer:
         self.res_MST: List[Edge] = []
 
     def set_sm_actions(self) -> None:
-        self.state_machine.set_action(State.DEL_NODES, pygame.K_a, self.G.clear_vertices)
-        self.state_machine.set_action(State.DEL_EDGES, pygame.K_a, self.G.clear_edges)
+        self.state_machine.set_action(State.MANUAL_NODES, pygame.K_d, self.G.clear_vertices)
+        self.state_machine.set_action(State.MANUAL_NODES, pygame.BUTTON_LEFT, lambda: print("TODO: add node"))
+        self.state_machine.set_action(State.MANUAL_NODES, pygame.BUTTON_RIGHT, lambda: print("TODO: remove node"))
+
+        self.state_machine.set_action(State.MANUAL_EDGES, pygame.K_d, self.G.clear_edges)
+        self.state_machine.set_action(State.MANUAL_EDGES, pygame.BUTTON_LEFT, lambda: print("TODO: add edge"))
+        self.state_machine.set_action(State.MANUAL_EDGES, pygame.BUTTON_RIGHT, lambda: print("TODO: remove edge"))
+
+        self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.K_d, lambda: print("TODO: Delete all segments"))
+        self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_LEFT, lambda: print("TODO: add segment"))
+        self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_RIGHT, lambda: print("TODO: remove segment"))
+
 
         self.state_machine.set_action(State.GEN_NODES, pygame.K_RETURN, self.helper_new_nodes_and_render)
         self.state_machine.set_action(State.GEN_NODES, pygame.K_UP,    lambda: self.helper_update_num_nodes_gen(1))
@@ -114,11 +125,11 @@ class Visualizer:
         self.new_segments(self.number_of_segments_to_generate)
         self.update_screen()
 
-    def helper_update_num_segments_gen(self, delta: int) -> None:
-        if delta > 0:
-            self.number_of_segments_to_generate += 1
+    def helper_update_num_segments_gen(self, change: int) -> None:
+        if change > 0:
+            self.number_of_segments_to_generate += change
         elif self.number_of_segments_to_generate > 0:
-            self.number_of_segments_to_generate -= 1
+            self.number_of_segments_to_generate -= change
         self.new_segments(self.number_of_segments_to_generate)
 
     def process_input(self, event: pygame.event.Event) -> None:

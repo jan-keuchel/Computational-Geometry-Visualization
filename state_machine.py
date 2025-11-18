@@ -2,30 +2,27 @@ from enum import Enum
 from typing import Any, Callable, Dict, Tuple
 
 import pygame
+import pygame.mouse
 
 import constants
 from constants import convex_hull_algos, lsi_algos, problem_types
 
 
 class State(Enum):
-    NORMAL       = "NORMAL"
-    DELETE       = "DELETE"
-    DEL_NODES    = "DEL_NODES"
-    DEL_EDGES    = "DEL_EDGES"
-    GENERATE     = "GENERATE"
-    GEN_NODES    = "GENERATE_NODES"
-    GEN_SEGMENTS = "GENERATE_SEGMENTS"
-    INSERT       = "INSERT"
-    INS_NODES    = "INS_NODES"
-    INS_EDGE     = "INS_EDGE"
-    INS_POLYGON  = "INS_POLYGON"
-    INS_SEGMENT  = "INS_SEGMENT"
-    RUN          = "RUN"
-    CH           = "CONVEX HULL"
-    LSI          = "LINE-SEGMENT INTERSECTION"
-    T            = "TRIANGULATION"
-    PAUSE        = "PAUSE"
-    ANIMATE      = "ANIMATE"
+    NORMAL          = "NORMAL"
+    MANUAL_MOD      = "MANUAL MODIFICATION"
+    MANUAL_NODES    = "NODES MANUAL MODIFICATION"
+    MANUAL_EDGES    = "EDGES MANUAL MODIFICATION"
+    MANUAL_SEGMENTS = "SEGMENTS MANUAL MODIFICATION"
+    GENERATE        = "GENERATE"
+    GEN_NODES       = "GENERATE_NODES"
+    GEN_SEGMENTS    = "GENERATE_SEGMENTS"
+    RUN             = "RUN"
+    CH              = "CONVEX HULL"
+    LSI             = "LINE-SEGMENT INTERSECTION"
+    T               = "TRIANGULATION"
+    PAUSE           = "PAUSE"
+    ANIMATE         = "ANIMATE"
 
 
 class StateMachine:
@@ -35,26 +32,28 @@ class StateMachine:
 
         self._TRANSITIONS = {
             State.NORMAL: {
-                pygame.K_d: State.DELETE,
                 pygame.K_g: State.GENERATE,
-                pygame.K_i: State.INSERT,
+                pygame.K_m: State.MANUAL_MOD,
                 pygame.K_r: State.RUN,
                 pygame.K_q: State.NORMAL,
             },
-            State.DELETE: {
-                pygame.K_n: State.DEL_NODES,
-                pygame.K_e: State.DEL_EDGES,
+            State.MANUAL_MOD: {
+                pygame.K_n: State.MANUAL_NODES,
+                pygame.K_e: State.MANUAL_EDGES,
+                pygame.K_s: State.MANUAL_SEGMENTS,
                 pygame.K_ESCAPE: State.NORMAL,
                 pygame.K_q: State.NORMAL,
             },
-            State.DEL_NODES: {
-                pygame.K_a: State.DELETE, # action
-                pygame.K_ESCAPE: State.DELETE,
+            State.MANUAL_NODES: {
+                pygame.K_ESCAPE: State.MANUAL_MOD,
                 pygame.K_q: State.NORMAL,
             },
-            State.DEL_EDGES: {
-                pygame.K_a: State.DELETE, # action
-                pygame.K_ESCAPE: State.DELETE,
+            State.MANUAL_EDGES: {
+                pygame.K_ESCAPE: State.MANUAL_MOD,
+                pygame.K_q: State.NORMAL,
+            },
+            State.MANUAL_SEGMENTS: {
+                pygame.K_ESCAPE: State.MANUAL_MOD,
                 pygame.K_q: State.NORMAL,
             },
             State.GENERATE: {
@@ -69,30 +68,6 @@ class StateMachine:
             },
             State.GEN_SEGMENTS: {
                 pygame.K_ESCAPE: State.GENERATE,
-                pygame.K_q: State.NORMAL,
-            },
-            State.INSERT: {
-                pygame.K_n: State.INS_NODES,
-                pygame.K_e: State.INS_EDGE,
-                pygame.K_p: State.INS_POLYGON,
-                pygame.K_s: State.INS_SEGMENT,
-                pygame.K_ESCAPE: State.NORMAL,
-                pygame.K_q: State.NORMAL,
-            },
-            State.INS_NODES: {
-                pygame.K_ESCAPE: State.NORMAL,
-                pygame.K_q: State.NORMAL,
-            },
-            State.INS_EDGE: {
-                pygame.K_ESCAPE: State.NORMAL,
-                pygame.K_q: State.NORMAL,
-            },
-            State.INS_POLYGON: {
-                pygame.K_ESCAPE: State.NORMAL,
-                pygame.K_q: State.NORMAL,
-            },
-            State.INS_SEGMENT: {
-                pygame.K_ESCAPE: State.NORMAL,
                 pygame.K_q: State.NORMAL,
             },
             State.RUN: {
@@ -133,26 +108,35 @@ class StateMachine:
         self._ACTIONS: Dict[Tuple[State, int], Callable] = {}
         self._HELP = {
             State.NORMAL: ["NORMAL",
+                           "  m : MANUAL MODIFICATION menu",
                            "  d : DELTE menu",
                            "  g : GENERATE menu",
-                           "  i : INSERT menu",
                            "  r : RUN menu",
                            "  q : quit application"],
-            State.DELETE: ["DELETE",
-                           "  n   : DELETE_NODES menu",
-                           "  e   : DELETE_EDGES menu",
-                           "  ESC : NORMAL menu",
-                           "  q   : quit application"],
-            State.DEL_NODES: ["DELETE_NODES",
-                              "  click : click a node to delete it",
-                              "  a     : delete all edges",
-                              "  ESC   : NORMAL menu",
-                              "  q     : quit application"],
-            State.DEL_EDGES: ["DELETE_EDGES",
-                              "  click : click two nodes to delete their connecting edge",
-                              "  a     : delete all edges",
-                              "  ESC   : NORMAL menu",
-                              "  q     : quit application"],
+            State.MANUAL_MOD: ["MANUAL MODIFICATION",
+                               "  n   : NODES MANUAL MODIFICATION",
+                               "  e   : EDGES MANUAL MODIFICATION",
+                               "  s   : SEGMENTS MANUAL MODIFICATION",
+                               "  ESC : NORMAL menu",
+                               "  q   : quit application"],
+            State.MANUAL_NODES: ["NODES MANUAL MODIFICATION",
+                                 "  left click  : add a node",
+                                 "  right click : remove a node",
+                                 "  d           : delete all nodes",
+                                 "  ESC         : MANUAL MODIFICATION menu",
+                                 "  q           : quit application"],
+            State.MANUAL_EDGES: ["EDGES MANUAL MODIFICATION",
+                                 "  left click  : click onto 2 nodes to add an edge",
+                                 "  right click : click onto 2 nodes to remove an existing edge",
+                                 "  d           : delete all edges",
+                                 "  ESC         : MANUAL MODIFICATION menu",
+                                 "  q           : quit application"],
+            State.MANUAL_SEGMENTS: ["SEGMENTS MANUAL MODIFICATION",
+                                    "  left click  : click twice to add a segment",
+                                    "  right click : click onto 2 nodes to remove an existing segment",
+                                    "  d           : delete all segments (pairs of nodes and edges)",
+                                    "  ESC         : MANUAL MODIFICATION menu",
+                                    "  q           : quit application"],
             State.GENERATE: ["GENERATE",
                              "  n   : GENERATE NODES",
                              "  s   : GENERATE SEGMENTS",
@@ -165,30 +149,11 @@ class StateMachine:
                               "  ESC    : NORMAL menu",
                               "  q      : quit application"],
             State.GEN_SEGMENTS: ["GENERATE SEGMENTS",
-                              "  RETURN : generate random segments",
-                              "  UP     : increment number of segments",
-                              "  DOWN   : decrement number of segments",
-                              "  ESC    : NORMAL menu",
-                              "  q      : quit application"],
-            State.INSERT: ["INSERT",
-                           "  n   : INSERT_NODES menu",
-                           "  e   : INSERT_EDGES menu",
-                           "  p   : INSERT_POLYGON menu",
-                           "  s   : INSERT_SEGMENTS menu",
-                           "  ESC : NORMAL menu",
-                           "  q   : quit application"],
-            State.INS_NODES: ["INSERT_NODES",
-                              "  ESC : NORMAL menu",
-                              "  q   : quit application"],
-            State.INS_EDGE: ["INSERT_EDGES",
-                             "  ESC : NORMAL menu",
-                             "  q   : quit application"],
-            State.INS_POLYGON: ["INSERT_POLYGON",
-                                "  ESC : NORMAL menu",
-                                "  q   : quit application"],
-            State.INS_SEGMENT: ["INSERT_SEGMENTS",
-                                "  ESC : NORMAL menu",
-                                "  q   : quit application"],
+                                 "  RETURN : generate random segments",
+                                 "  UP     : increment number of segments",
+                                 "  DOWN   : decrement number of segments",
+                                 "  ESC    : NORMAL menu",
+                                 "  q      : quit application"],
             State.RUN: ["RUN",
                         "  c   : CONVEX HULL menu",
                         # "  t   : TRIANGULATION menu",
@@ -228,17 +193,23 @@ class StateMachine:
         self._ACTIONS[(state, event)] = func
 
     def handle_event(self, event: pygame.event.Event) -> None:
-        action = self._ACTIONS.get((self.current_state, event.key), None)
-        if action is not None:
-            action()
+        if event.type == pygame.KEYDOWN:
+            action = self._ACTIONS.get((self.current_state, event.key), None)
+            if action is not None:
+                action()
 
-        new_state = self._TRANSITIONS.get(self.current_state, {}).get(event.key)
-        if new_state is None:
-            return
+            new_state = self._TRANSITIONS.get(self.current_state, {}).get(event.key)
+            if new_state is None:
+                return
 
-        if self.current_state != new_state:
-            self.current_state = new_state
-            self._print_help()
+            if self.current_state != new_state:
+                self.current_state = new_state
+                self._print_help()
+
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            action = self._ACTIONS.get((self.current_state, event.button), None)
+            if action is not None:
+                action()
 
     def reset_state(self) -> None:
         self.current_state = State.NORMAL

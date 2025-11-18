@@ -23,13 +23,16 @@ def main():
                 vis.clear_screen()
                 vis.display_screen()
 
-            if event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
                     running = False
                     vis.clear_screen()
                     vis.display_screen()
                 else:
                     vis.process_input(event)
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                vis.process_input(event)
 
 
         if vis.get_state() == State.ANIMATE:
