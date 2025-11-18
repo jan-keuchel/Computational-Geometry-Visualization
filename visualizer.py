@@ -62,12 +62,16 @@ class Visualizer:
         self.state_machine.set_action(State.DEL_EDGES, pygame.K_a, self.G.clear_edges)
 
         self.state_machine.set_action(State.GEN_NODES, pygame.K_RETURN, self.helper_new_nodes_and_render)
-        self.state_machine.set_action(State.GEN_NODES, pygame.K_UP, lambda: self.helper_update_num_nodes_gen(1))
-        self.state_machine.set_action(State.GEN_NODES, pygame.K_DOWN, lambda: self.helper_update_num_nodes_gen(-1))
+        self.state_machine.set_action(State.GEN_NODES, pygame.K_UP,    lambda: self.helper_update_num_nodes_gen(1))
+        self.state_machine.set_action(State.GEN_NODES, pygame.K_RIGHT, lambda: self.helper_update_num_nodes_gen(5))
+        self.state_machine.set_action(State.GEN_NODES, pygame.K_DOWN,  lambda: self.helper_update_num_nodes_gen(-1))
+        self.state_machine.set_action(State.GEN_NODES, pygame.K_LEFT,  lambda: self.helper_update_num_nodes_gen(-5))
 
         self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_RETURN, self.helper_new_segments_and_render)
-        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_UP, lambda: self.helper_update_num_segments_gen(1))
-        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_DOWN, lambda: self.helper_update_num_segments_gen(-1))
+        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_UP,    lambda: self.helper_update_num_segments_gen(1))
+        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_RIGHT, lambda: self.helper_update_num_segments_gen(5))
+        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_DOWN,  lambda: self.helper_update_num_segments_gen(-1))
+        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_LEFT,  lambda: self.helper_update_num_segments_gen(-5))
 
         self.state_machine.set_action(State.RUN, pygame.K_c, lambda: self.set_problem(constants.problem_types.CH))
         self.state_machine.set_action(State.RUN, pygame.K_t, lambda: self.set_problem(constants.problem_types.T))
@@ -98,11 +102,11 @@ class Visualizer:
         self.new_nodes(self.number_of_nodes_to_generate)
         self.update_screen()
 
-    def helper_update_num_nodes_gen(self, delta: int) -> None:
-        if delta > 0:
-            self.number_of_nodes_to_generate += 1
+    def helper_update_num_nodes_gen(self, change: int) -> None:
+        if change > 0:
+            self.number_of_nodes_to_generate += change
         elif self.number_of_nodes_to_generate > 0:
-            self.number_of_nodes_to_generate -= 1
+            self.number_of_nodes_to_generate += change
         self.helper_new_nodes_and_render()
 
     def helper_new_segments_and_render(self) -> None:
