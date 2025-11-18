@@ -57,8 +57,8 @@ class Visualizer:
         self.state_machine.set_action(State.DEL_NODES, pygame.K_a, self.G.clear_vertices)
         self.state_machine.set_action(State.DEL_EDGES, pygame.K_a, self.G.clear_edges)
 
-        self.state_machine.set_action(State.GENERATE, pygame.K_n, self.new_nodes)
-        self.state_machine.set_action(State.GENERATE, pygame.K_s, self.new_segments)
+        self.state_machine.set_action(State.GENERATE, pygame.K_n, self.helper_new_nodes_and_render)
+        self.state_machine.set_action(State.GENERATE, pygame.K_s, self.helper_new_segments_and_render)
 
         self.state_machine.set_action(State.RUN, pygame.K_c, lambda: self.set_problem(constants.problem_types.CH))
         self.state_machine.set_action(State.RUN, pygame.K_t, lambda: self.set_problem(constants.problem_types.T))
@@ -74,6 +74,14 @@ class Visualizer:
 
         self.state_machine.set_action(State.ANIMATE, pygame.K_UP, self.increase_fps)
         self.state_machine.set_action(State.ANIMATE, pygame.K_DOWN, self.decrease_fps)
+
+    def helper_new_nodes_and_render(self) -> None:
+        self.new_nodes()
+        self.update_screen()
+
+    def helper_new_segments_and_render(self) -> None:
+        self.new_segments()
+        self.update_screen()
 
     def process_input(self, event: pygame.event.Event) -> None:
         self.state_machine.handle_event(event)
@@ -105,12 +113,9 @@ class Visualizer:
     def step(self) -> None:
         self.step_simulation()
 
-        self.clear_screen()
-        self.render_state()
-        self.display_screen()
+        self.update_screen()
     
     def step_simulation(self) -> None:
-        print("[Visualizer] step")
 
         if self.current_problem == constants.problem_types.CH:
             if self.gen_CH is None:
@@ -149,7 +154,6 @@ class Visualizer:
         """
         self.reset_graph()
         self.G.generate_random_nodes(num_nodes)
-        print("[DEBUG|VIS] new nodes generated...")
 
     def new_segments(self, num_segments=10) -> None:
         """
@@ -278,7 +282,7 @@ class Visualizer:
 
     def update_screen(self) -> None:
         self.clear_screen()
-        self.G.draw(self.window.screen, node_draw_compact=True)
+        self.G.draw(self.window.screen, constants.EDGE_COLOR, node_col=constants.BLUE, node_draw_compact=True)
         self.render_state()
         self.display_screen()
 

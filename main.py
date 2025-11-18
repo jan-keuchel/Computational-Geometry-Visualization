@@ -34,8 +34,6 @@ def main():
 
         if vis.get_state() == State.ANIMATE:
             vis.step_simulation()
-            # vis.clear_screen()
-            # vis.render_state()
             # vis.update_screen()
             clock.tick(vis.fps)
 
@@ -43,9 +41,7 @@ def main():
             clock.tick()
 
 
-        vis.clear_screen()
-        vis.render_state()
-        vis.display_screen()
+        vis.update_screen()
 
     pygame.font.quit()
     pygame.quit()

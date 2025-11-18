@@ -213,7 +213,6 @@ class StateMachine:
         if new_state is None:
             return
 
-        print(f"[DEBUG|SM] current_state={self.current_state}, event.key={event.key}")
         action = self._ACTIONS.get((self.current_state, event.key), None)
         if action is not None:
             action()
