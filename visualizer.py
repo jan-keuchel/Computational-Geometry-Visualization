@@ -14,14 +14,17 @@ import pygame
 class Visualizer:
     def __init__(self) -> None:
         self.window = Window(constants.WIN_WIDTH, constants.WIN_HEIGHT)
-        self.state_machine = StateMachine(self)
 
         # The graph on which algorithms are performed
         self.G: Graph = Graph()
 
+        # State and menu management
+        self.state_machine = StateMachine()
+        self.set_sm_actions()
+
         # Animation control
-        self.fps          = 1
-        self.latest_state: GraphDrawContainer = GraphDrawContainer()
+        self.fps = 1
+        self.latest_simulation_state: GraphDrawContainer = GraphDrawContainer()
 
         # The problem that is being solved currently
         self.current_problem: constants.problem_types | None = None
@@ -49,6 +52,28 @@ class Visualizer:
 
         # TODO: from earlier. need to adjust 
         self.res_MST: List[Edge] = []
+
+    def set_sm_actions(self) -> None:
+        self.state_machine.set_action(State.DEL_NODES, pygame.K_a, self.G.clear_vertices)
+        self.state_machine.set_action(State.DEL_EDGES, pygame.K_a, self.G.clear_edges)
+
+        self.state_machine.set_action(State.GENERATE, pygame.K_n, self.new_nodes)
+        self.state_machine.set_action(State.GENERATE, pygame.K_s, self.new_segments)
+
+        self.state_machine.set_action(State.RUN, pygame.K_c, lambda: self.set_problem(constants.problem_types.CH))
+        self.state_machine.set_action(State.RUN, pygame.K_t, lambda: self.set_problem(constants.problem_types.T))
+        self.state_machine.set_action(State.RUN, pygame.K_l, lambda: self.set_problem(constants.problem_types.LSI))
+
+        self.state_machine.set_action(State.CH, pygame.K_0, lambda: self.set_algorithm(constants.convex_hull_algos.BRUTE_FORCE))
+        self.state_machine.set_action(State.CH, pygame.K_1, lambda: self.set_algorithm(constants.convex_hull_algos.GRAHAM_SCAN))
+        self.state_machine.set_action(State.CH, pygame.K_2, lambda: self.set_algorithm(constants.convex_hull_algos.JARVIS_MARCH))
+
+        self.state_machine.set_action(State.LSI, pygame.K_0, lambda: self.set_algorithm(constants.lsi_algos.BRUTE_FORCE))
+
+        self.state_machine.set_action(State.PAUSE, pygame.K_RETURN, self.step)
+
+        self.state_machine.set_action(State.ANIMATE, pygame.K_UP, self.increase_fps)
+        self.state_machine.set_action(State.ANIMATE, pygame.K_DOWN, self.decrease_fps)
 
     def process_input(self, event: pygame.event.Event) -> None:
         self.state_machine.handle_event(event)
@@ -93,7 +118,7 @@ class Visualizer:
                 return
 
             try:
-                self.latest_state = next(self.gen_CH)
+                self.latest_simulation_state = next(self.gen_CH)
             except StopIteration as e:
                 self.state_machine.reset_state()
                 self.res_CH = e.value
@@ -104,7 +129,7 @@ class Visualizer:
                 return
 
             try:
-                self.latest_state = next(self.gen_LSI)
+                self.latest_simulation_state = next(self.gen_LSI)
             except StopIteration as e:
                 self.state_machine.reset_state()
                 self.res_LSI = e.value
@@ -124,6 +149,7 @@ class Visualizer:
         """
         self.reset_graph()
         self.G.generate_random_nodes(num_nodes)
+        print("[DEBUG|VIS] new nodes generated...")
 
     def new_segments(self, num_segments=10) -> None:
         """
@@ -246,12 +272,13 @@ class Visualizer:
         self.window.clear()
 
     def render_state(self) -> None:
-        items: List[Drawable] = self.latest_state.get_all_drawables()
+        items: List[Drawable] = self.latest_simulation_state.get_all_drawables()
         for d in items:
             d.draw(self.window.screen)
 
     def update_screen(self) -> None:
         self.clear_screen()
+        self.G.draw(self.window.screen, node_draw_compact=True)
         self.render_state()
         self.display_screen()
 

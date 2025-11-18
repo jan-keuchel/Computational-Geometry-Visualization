@@ -619,6 +619,7 @@ class Graph:
         self.adj_mat.clear()
 
     def clear_vertices(self) -> None:
+        # TODO: update adj_mat
         self.V.clear()
 
 
