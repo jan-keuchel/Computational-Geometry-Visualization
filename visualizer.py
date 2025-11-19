@@ -27,6 +27,7 @@ class Visualizer:
         # Input Event
         self.latest_input_event: pygame.event.Event
         self.last_node_selected: Node | None = None
+        self.current_polygon_node_chain: List[Node] = []
 
         # State and menu management
         self.state_machine = StateMachine()
@@ -79,6 +80,10 @@ class Visualizer:
         self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_LEFT, self._helper_add_segment)
         self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_RIGHT, self._helper_remove_segment)
 
+        self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.BUTTON_LEFT, self._helper_add_node_to_polygon)
+        self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.BUTTON_RIGHT, self._helper_remove_node_from_polygon)
+        self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.K_RETURN, self._helper_from_polygon_cycle)
+        self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.K_ESCAPE, self._helper_abort_polygon)
 
         self.state_machine.set_action(State.GEN_NODES, pygame.K_RETURN, self._helper_new_nodes_and_render)
         self.state_machine.set_action(State.GEN_NODES, pygame.K_UP,    lambda: self._helper_update_num_nodes_gen(1))
@@ -266,6 +271,64 @@ class Visualizer:
                 self.last_node_selected = None
             else:
                 self.last_node_selected = selected
+
+    def _helper_add_node_to_polygon(self) -> None:
+        # Add new node to chain and graph
+        x, y = pygame.mouse.get_pos()
+        n: Node = Node(Point(x, y))
+        self.current_polygon_node_chain.append(n)
+        self.G.add_node(n)
+
+        if len(self.current_polygon_node_chain) == 1:
+            return
+
+        self.G.add_edge(self.current_polygon_node_chain[-2],
+                        self.current_polygon_node_chain[-1])
+
+    def _helper_remove_node_from_polygon(self) -> None:
+        if len(self.current_polygon_node_chain) == 0:
+            return
+
+        self.G.pop_node()
+        self.current_polygon_node_chain.pop()
+
+    def _helper_from_polygon_cycle(self) -> None:
+        if len(self.current_polygon_node_chain) >= 2:
+            self.G.add_edge(self.current_polygon_node_chain[-1],
+                            self.current_polygon_node_chain[0])
+
+            
+            # Calculate inner angle sum to check for definition of
+            # polygon in counter-clockwise order of vertices
+            inner_angle_sum:float = 0
+            for i in range(len(self.current_polygon_node_chain)):
+                inner_angle_sum += get_angle(self.current_polygon_node_chain[i-1].p,
+                                             self.current_polygon_node_chain[i].p,
+                                             self.current_polygon_node_chain[(i+1) % len(self.current_polygon_node_chain)].p)
+
+            # Reverse order if IAS != 180° * (n-2)
+            if math.degrees(inner_angle_sum) - (180 * (len(self.current_polygon_node_chain) - 2)) > 1e-6:
+                print("before: ")
+                for n in self.G.V:
+                    print(f"{n.id} ")
+                first = self.G.V.index(self.current_polygon_node_chain[0])
+                last = self.G.V.index(self.current_polygon_node_chain[-1])
+                for i in range(first, int((first + last) / 2), 1):
+                    temp: Node = self.G.V[i]
+                    self.G.V[i] = self.G.V[last - (i - first)]
+                    self.G.V[last - (i - first)] = temp
+
+                print("after: ")
+                for n in self.G.V:
+                    print(f"{n.id} ")
+
+            self.current_polygon_node_chain.clear()
+
+    def _helper_abort_polygon(self) -> None:
+        for n in self.current_polygon_node_chain:
+            self.G.remove_node(n)
+        self.current_polygon_node_chain.clear()
+
 
     def _helper_clear_segments(self) -> None:
         nodes_to_remove: List[Node] = []

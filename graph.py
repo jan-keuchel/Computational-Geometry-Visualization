@@ -161,8 +161,11 @@ class Graph:
             self.V.append(Node(Point(x, y)))
 
 
-    def add_node(self, p:Point) -> None:
-        self.V.append(Node(p));
+    def add_node(self, p:Point|Node) -> None:
+        if isinstance(p, Point):
+            self.V.append(Node(p));
+        else:
+            self.V.append(p)
 
     def pop_node(self) -> None:
         self.remove_node(self.V[-1])

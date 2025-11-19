@@ -14,6 +14,7 @@ class State(Enum):
     MANUAL_NODES    = "NODES MANUAL MODIFICATION"
     MANUAL_EDGES    = "EDGES MANUAL MODIFICATION"
     MANUAL_SEGMENTS = "SEGMENTS MANUAL MODIFICATION"
+    MANUAL_POLYGONS = "POLYGONS MANUAL MODIFICATION"
     GENERATE        = "GENERATE"
     GEN_NODES       = "GENERATE_NODES"
     GEN_SEGMENTS    = "GENERATE_SEGMENTS"
@@ -41,6 +42,7 @@ class StateMachine:
                 pygame.K_n: State.MANUAL_NODES,
                 pygame.K_e: State.MANUAL_EDGES,
                 pygame.K_s: State.MANUAL_SEGMENTS,
+                pygame.K_p: State.MANUAL_POLYGONS,
                 pygame.K_ESCAPE: State.NORMAL,
                 pygame.K_q: State.NORMAL,
             },
@@ -53,6 +55,10 @@ class StateMachine:
                 pygame.K_q: State.NORMAL,
             },
             State.MANUAL_SEGMENTS: {
+                pygame.K_ESCAPE: State.MANUAL_MOD,
+                pygame.K_q: State.NORMAL,
+            },
+            State.MANUAL_POLYGONS: {
                 pygame.K_ESCAPE: State.MANUAL_MOD,
                 pygame.K_q: State.NORMAL,
             },
@@ -118,6 +124,7 @@ class StateMachine:
                                "  n   : NODES MANUAL MODIFICATION",
                                "  e   : EDGES MANUAL MODIFICATION",
                                "  s   : SEGMENTS MANUAL MODIFICATION",
+                               "  p   : POLYGONS MANUAL MODIFICATION",
                                "  -   : toggle compact node rendering",
                                "  ESC : NORMAL menu",
                                "  q   : quit application"],
@@ -139,6 +146,13 @@ class StateMachine:
                                     "  left click  : click twice to add a segment",
                                     "  right click : click onto 2 nodes to remove an existing segment",
                                     "  d           : delete all segments (pairs of nodes and edges)",
+                                    "  -           : toggle compact node rendering",
+                                    "  ESC         : MANUAL MODIFICATION menu",
+                                    "  q           : quit application"],
+            State.MANUAL_POLYGONS: ["POLYGONS MANUAL MODIFICATION",
+                                    "  left click  : add a new node to the current chain of nodes",
+                                    "  right click : remove the last node from the current chain of nodes",
+                                    "  RETURN      : connect the last placed node with the first placed node to form a polygon",
                                     "  -           : toggle compact node rendering",
                                     "  ESC         : MANUAL MODIFICATION menu",
                                     "  q           : quit application"],
