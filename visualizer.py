@@ -68,7 +68,7 @@ class Visualizer:
 
         self.state_machine.set_action(State.MANUAL_NODES, pygame.K_d, self.G.clear_vertices)
         self.state_machine.set_action(State.MANUAL_NODES, pygame.BUTTON_LEFT, self._helper_add_node)
-        self.state_machine.set_action(State.MANUAL_NODES, pygame.BUTTON_RIGHT, lambda: print("TODO: remove node"))
+        self.state_machine.set_action(State.MANUAL_NODES, pygame.BUTTON_RIGHT, self._helper_remove_node)
 
         self.state_machine.set_action(State.MANUAL_EDGES, pygame.K_d, self.G.clear_edges)
         self.state_machine.set_action(State.MANUAL_EDGES, pygame.BUTTON_LEFT, lambda: print("TODO: add edge"))
@@ -141,6 +141,12 @@ class Visualizer:
     def _helper_add_node(self) -> None:
         x, y = pygame.mouse.get_pos()
         self.G.add_node(Point(x, y))
+
+    def _helper_remove_node(self) -> None:
+        x, y = pygame.mouse.get_pos()
+        for n in self.G.V:
+            if Node.point_inside_node(n, Point(x, y)):
+                self.G.remove_node(n)
 
     def process_input(self, event: pygame.event.Event) -> None:
         self.latest_input_event = event
