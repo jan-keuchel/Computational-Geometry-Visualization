@@ -24,6 +24,9 @@ class Visualizer:
         self.number_of_nodes_to_generate = 10
         self.number_of_segments_to_generate = 10
 
+        # Input Event
+        self.latest_input_event: pygame.event.Event
+
         # State and menu management
         self.state_machine = StateMachine()
         self.set_sm_actions()
@@ -64,7 +67,7 @@ class Visualizer:
         self.state_machine.set_action(State.NORMAL, pygame.K_d, self.reset_all)
 
         self.state_machine.set_action(State.MANUAL_NODES, pygame.K_d, self.G.clear_vertices)
-        self.state_machine.set_action(State.MANUAL_NODES, pygame.BUTTON_LEFT, lambda: print("TODO: add node"))
+        self.state_machine.set_action(State.MANUAL_NODES, pygame.BUTTON_LEFT, self._helper_add_node)
         self.state_machine.set_action(State.MANUAL_NODES, pygame.BUTTON_RIGHT, lambda: print("TODO: remove node"))
 
         self.state_machine.set_action(State.MANUAL_EDGES, pygame.K_d, self.G.clear_edges)
@@ -76,17 +79,17 @@ class Visualizer:
         self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_RIGHT, lambda: print("TODO: remove segment"))
 
 
-        self.state_machine.set_action(State.GEN_NODES, pygame.K_RETURN, self.helper_new_nodes_and_render)
-        self.state_machine.set_action(State.GEN_NODES, pygame.K_UP,    lambda: self.helper_update_num_nodes_gen(1))
-        self.state_machine.set_action(State.GEN_NODES, pygame.K_RIGHT, lambda: self.helper_update_num_nodes_gen(5))
-        self.state_machine.set_action(State.GEN_NODES, pygame.K_DOWN,  lambda: self.helper_update_num_nodes_gen(-1))
-        self.state_machine.set_action(State.GEN_NODES, pygame.K_LEFT,  lambda: self.helper_update_num_nodes_gen(-5))
+        self.state_machine.set_action(State.GEN_NODES, pygame.K_RETURN, self._helper_new_nodes_and_render)
+        self.state_machine.set_action(State.GEN_NODES, pygame.K_UP,    lambda: self._helper_update_num_nodes_gen(1))
+        self.state_machine.set_action(State.GEN_NODES, pygame.K_RIGHT, lambda: self._helper_update_num_nodes_gen(5))
+        self.state_machine.set_action(State.GEN_NODES, pygame.K_DOWN,  lambda: self._helper_update_num_nodes_gen(-1))
+        self.state_machine.set_action(State.GEN_NODES, pygame.K_LEFT,  lambda: self._helper_update_num_nodes_gen(-5))
 
-        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_RETURN, self.helper_new_segments_and_render)
-        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_UP,    lambda: self.helper_update_num_segments_gen(1))
-        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_RIGHT, lambda: self.helper_update_num_segments_gen(5))
-        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_DOWN,  lambda: self.helper_update_num_segments_gen(-1))
-        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_LEFT,  lambda: self.helper_update_num_segments_gen(-5))
+        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_RETURN, self._helper_new_segments_and_render)
+        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_UP,    lambda: self._helper_update_num_segments_gen(1))
+        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_RIGHT, lambda: self._helper_update_num_segments_gen(5))
+        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_DOWN,  lambda: self._helper_update_num_segments_gen(-1))
+        self.state_machine.set_action(State.GEN_SEGMENTS, pygame.K_LEFT,  lambda: self._helper_update_num_segments_gen(-5))
 
         self.state_machine.set_action(State.RUN, pygame.K_c, lambda: self.set_problem(constants.problem_types.CH))
         self.state_machine.set_action(State.RUN, pygame.K_t, lambda: self.set_problem(constants.problem_types.T))
@@ -113,29 +116,34 @@ class Visualizer:
     def toggle_compact_nodes(self) -> None:
         Node.compact_nodes = not Node.compact_nodes
 
-    def helper_new_nodes_and_render(self) -> None:
+    def _helper_new_nodes_and_render(self) -> None:
         self.new_nodes(self.number_of_nodes_to_generate)
         self.update_screen()
 
-    def helper_update_num_nodes_gen(self, change: int) -> None:
+    def _helper_update_num_nodes_gen(self, change: int) -> None:
         if change > 0:
             self.number_of_nodes_to_generate += change
         elif self.number_of_nodes_to_generate > 0:
             self.number_of_nodes_to_generate += change
-        self.helper_new_nodes_and_render()
+        self._helper_new_nodes_and_render()
 
-    def helper_new_segments_and_render(self) -> None:
+    def _helper_new_segments_and_render(self) -> None:
         self.new_segments(self.number_of_segments_to_generate)
         self.update_screen()
 
-    def helper_update_num_segments_gen(self, change: int) -> None:
+    def _helper_update_num_segments_gen(self, change: int) -> None:
         if change > 0:
             self.number_of_segments_to_generate += change
         elif self.number_of_segments_to_generate > 0:
             self.number_of_segments_to_generate -= change
         self.new_segments(self.number_of_segments_to_generate)
 
+    def _helper_add_node(self) -> None:
+        x, y = pygame.mouse.get_pos()
+        self.G.add_node(Point(x, y))
+
     def process_input(self, event: pygame.event.Event) -> None:
+        self.latest_input_event = event
         self.state_machine.handle_event(event)
 
     def get_state(self) -> State:
@@ -213,7 +221,7 @@ class Visualizer:
         `new_nodes` deletes the entire graph with it's associated data
         and generates a new set of nodes.
         """
-        self.reset_graph()
+        self.reset_all()
         self.G.generate_random_nodes(num_nodes)
 
     def new_segments(self, num_segments=10) -> None:
