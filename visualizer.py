@@ -26,7 +26,7 @@ class Visualizer:
 
         # Input Event
         self.latest_input_event: pygame.event.Event
-        self.edge_insert_last_node_selected: Node | None = None
+        self.last_node_selected: Node | None = None
 
         # State and menu management
         self.state_machine = StateMachine()
@@ -73,7 +73,7 @@ class Visualizer:
 
         self.state_machine.set_action(State.MANUAL_EDGES, pygame.K_d, self.G.clear_edges)
         self.state_machine.set_action(State.MANUAL_EDGES, pygame.BUTTON_LEFT, self._helper_add_edge)
-        self.state_machine.set_action(State.MANUAL_EDGES, pygame.BUTTON_RIGHT, lambda: print("TODO: remove edge"))
+        self.state_machine.set_action(State.MANUAL_EDGES, pygame.BUTTON_RIGHT, self._helper_remove_edge)
 
         self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.K_d, lambda: print("TODO: Delete all segments"))
         self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_LEFT, lambda: print("TODO: add segment"))
@@ -167,13 +167,47 @@ class Visualizer:
             return
 
         # Check if another node has been clicked before
-        if self.edge_insert_last_node_selected is None:
-            self.edge_insert_last_node_selected = selected
+        if self.last_node_selected is None:
+            self.last_node_selected = selected
             return
 
         # Add the new edge and reset the "status"
-        self.G.add_edge(self.edge_insert_last_node_selected, selected)
-        self.edge_insert_last_node_selected = None
+        self.G.add_edge(self.last_node_selected, selected)
+        self.last_node_selected = None
+
+    def _helper_remove_edge(self) -> None:
+        x, y = pygame.mouse.get_pos()
+
+        # Find all clicked on nodes
+        selected: Node | None = None
+        for n in self.G.V:
+            if Node.point_inside_node(n, Point(x, y)):
+                if selected is None:
+                    selected = n
+                else:
+                    print("Warning: Please only select a single node.")
+                    return
+        
+        # Didn't click any node
+        if selected is None:
+            return
+
+        # Check if another node has been clicked before
+        if self.last_node_selected is None:
+            self.last_node_selected = selected
+            return
+
+        # Add the new edge and reset the "status"
+        connected_to = self.G.adj_mat.get(self.last_node_selected.id, None)
+        if connected_to is not None:
+            if selected.id in connected_to:
+                self.G.remove_edge(self.G.adj_mat[self.last_node_selected.id][selected.id])
+
+                self.last_node_selected = None
+            else:
+                self.last_node_selected = selected
+
+
         
     def process_input(self, event: pygame.event.Event) -> None:
         self.latest_input_event = event
