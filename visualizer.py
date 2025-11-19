@@ -76,7 +76,7 @@ class Visualizer:
         self.state_machine.set_action(State.MANUAL_EDGES, pygame.BUTTON_RIGHT, self._helper_remove_edge)
 
         self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.K_d, lambda: print("TODO: Delete all segments"))
-        self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_LEFT, lambda: print("TODO: add segment"))
+        self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_LEFT, self._helper_add_segment)
         self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_RIGHT, lambda: print("TODO: remove segment"))
 
 
@@ -207,6 +207,17 @@ class Visualizer:
             else:
                 self.last_node_selected = selected
 
+    def _helper_add_segment(self) -> None:
+        x, y = pygame.mouse.get_pos()
+
+        # Check for click onto existing node
+        for n in self.G.V:
+            if Node.point_inside_node(n, Point(x, y)):
+                print("Warning: Please don't click onto existing nodes when adding a segment.")
+                return
+
+        self._helper_add_node()
+        self._helper_add_edge()
 
         
     def process_input(self, event: pygame.event.Event) -> None:
