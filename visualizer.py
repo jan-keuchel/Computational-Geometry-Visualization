@@ -361,7 +361,6 @@ class Visualizer:
             self.fps -= 1
 
     def set_problem(self, prob: constants.problem_types) -> None:
-        print("[Visualizer] New problem:", prob.value)
         self.current_problem = prob
 
     def set_algorithm(self, algo) -> None:

@@ -5,7 +5,7 @@ import pygame
 import pygame.mouse
 
 import constants
-from constants import convex_hull_algos, lsi_algos, problem_types
+from constants import convex_hull_algos, lsi_algos, problem_types, BOLD, UNDERLINE, RESET, SS
 
 
 class State(Enum):
@@ -16,8 +16,8 @@ class State(Enum):
     MANUAL_SEGMENTS = "SEGMENTS MANUAL MODIFICATION"
     MANUAL_POLYGONS = "POLYGONS MANUAL MODIFICATION"
     GENERATE        = "GENERATE"
-    GEN_NODES       = "GENERATE_NODES"
-    GEN_SEGMENTS    = "GENERATE_SEGMENTS"
+    GEN_NODES       = "GENERATE NODES"
+    GEN_SEGMENTS    = "GENERATE SEGMENTS"
     RUN             = "RUN"
     CH              = "CONVEX HULL"
     LSI             = "LINE-SEGMENT INTERSECTION"
@@ -30,6 +30,7 @@ class StateMachine:
 
     def __init__(self) -> None:
         self.current_state:State = State.NORMAL
+        self._last_help_lines = 0
 
         self._TRANSITIONS = {
             State.NORMAL: {
@@ -113,101 +114,89 @@ class StateMachine:
         }
         self._ACTIONS: Dict[Tuple[State, int], Callable] = {}
         self._HELP = {
-            State.NORMAL: ["NORMAL",
-                           "  m : MANUAL MODIFICATION menu",
+            State.NORMAL: ["  m : MANUAL MODIFICATION menu",
                            "  g : GENERATE menu",
                            "  r : RUN menu",
                            "  d : delete all",
                            "  - : toggle compact node rendering",
                            "  q : quit application"],
-            State.MANUAL_MOD: ["MANUAL MODIFICATION",
-                               "  n   : NODES MANUAL MODIFICATION",
+            State.MANUAL_MOD: ["  n   : NODES MANUAL MODIFICATION",
                                "  e   : EDGES MANUAL MODIFICATION",
                                "  s   : SEGMENTS MANUAL MODIFICATION",
                                "  p   : POLYGONS MANUAL MODIFICATION",
                                "  -   : toggle compact node rendering",
                                "  ESC : NORMAL menu",
                                "  q   : quit application"],
-            State.MANUAL_NODES: ["NODES MANUAL MODIFICATION",
-                                 "  left click  : add a node",
+            State.MANUAL_NODES: ["  left click  : add a node",
                                  "  right click : remove a node",
                                  "  d           : delete all nodes",
                                  "  -           : toggle compact node rendering",
                                  "  ESC         : MANUAL MODIFICATION menu",
                                  "  q           : quit application"],
-            State.MANUAL_EDGES: ["EDGES MANUAL MODIFICATION",
-                                 "  left click  : click onto 2 nodes to add an edge",
+            State.MANUAL_EDGES: ["  left click  : click onto 2 nodes to add an edge",
                                  "  right click : click onto 2 nodes to remove an existing edge",
                                  "  d           : delete all edges",
                                  "  -           : toggle compact node rendering",
                                  "  ESC         : MANUAL MODIFICATION menu",
                                  "  q           : quit application"],
-            State.MANUAL_SEGMENTS: ["SEGMENTS MANUAL MODIFICATION",
-                                    "  left click  : click twice to add a segment",
+            State.MANUAL_SEGMENTS: ["  left click  : click twice to add a segment",
                                     "  right click : click onto 2 nodes to remove an existing segment",
                                     "  d           : delete all segments (pairs of nodes and edges)",
                                     "  -           : toggle compact node rendering",
                                     "  ESC         : MANUAL MODIFICATION menu",
                                     "  q           : quit application"],
-            State.MANUAL_POLYGONS: ["POLYGONS MANUAL MODIFICATION",
-                                    "  left click  : add a new node to the current chain of nodes",
+            State.MANUAL_POLYGONS: ["  left click  : add a new node to the current chain of nodes",
                                     "  right click : remove the last node from the current chain of nodes",
                                     "  RETURN      : connect the last placed node with the first placed node to form a polygon",
                                     "  -           : toggle compact node rendering",
                                     "  ESC         : MANUAL MODIFICATION menu",
                                     "  q           : quit application"],
-            State.GENERATE: ["GENERATE",
-                             "  n   : GENERATE NODES",
+            State.GENERATE: ["  n   : GENERATE NODES",
                              "  s   : GENERATE SEGMENTS",
                              "  -   : toggle compact node rendering",
                              "  ESC : NORMAL menu",
                              "  q   : quit application"],
-            State.GEN_NODES: ["GENERATE NODES",
-                              "  RETURN : generate random rondes",
+            State.GEN_NODES: ["  RETURN : generate random rondes",
                               "  UP     : increment number of nodes",
+                              "  RIGHT  : increase number of nodes by 5",
                               "  DOWN   : decrement number of nodes",
+                              "  LEFT   : decrease number of nodes by 5",
                               "  -      : toggle compact node rendering",
                               "  ESC    : NORMAL menu",
                               "  q      : quit application"],
-            State.GEN_SEGMENTS: ["GENERATE SEGMENTS",
-                                 "  RETURN : generate random segments",
+            State.GEN_SEGMENTS: ["  RETURN : generate random segments",
                                  "  UP     : increment number of segments",
+                                 "  RIGHT  : increase number of segments by 5",
                                  "  DOWN   : decrement number of segments",
+                                 "  LEFT   : decrease number of segments by 5",
                                  "  -      : toggle compact node rendering",
                                  "  ESC    : NORMAL menu",
                                  "  q      : quit application"],
-            State.RUN: ["RUN",
-                        "  c   : CONVEX HULL menu",
-                        # "  t   : TRIANGULATION menu",
+            State.RUN: ["  c   : CONVEX HULL menu",
                         "  l   : LINE-SEGMENT INTERSECTION menu",
                         "  -   : toggle compact node rendering",
                         "  ESC : NORMAL menu",
                         "  q   : quit application"],
-            State.CH: ["CONVEX HULL",
-                       "  0   : Brute Force",
+            State.CH: ["  0   : Brute Force",
                        "  1   : Monotonous Chains",
                        "  2   : Jarvis' March",
                        "  -   : toggle compact node rendering",
                        "  ESC : NORMAL menu",
                        "  q   : quit application"],
-            State.LSI: ["LINE-SEGMENT INTERSECTION",
-                        "  0   : Brute Force",
+            State.LSI: ["  0   : Brute Force",
                         "  -   : toggle compact node rendering",
                         "  ESC : NORMAL menu",
                         "  q   : quit application"],
-            State.T: ["TRIANGULATION",
-                      "  0   : Brute Force",
+            State.T: ["  0   : Brute Force",
                       "  -   : toggle compact node rendering",
                       "  ESC : NORMAL menu",
                       "  q   : quit application"],
-            State.PAUSE: ["PAUSE",
-                          "  SPACE  : play",
+            State.PAUSE: ["  SPACE  : play",
                           "  RETURN : manual step",
                           "  -      : toggle compact node rendering",
                           "  ESC    : NORMAL menu",
                           "  q      : quit application"],
-            State.ANIMATE: ["ANIMATE",
-                            "  SPACE : pause",
+            State.ANIMATE: ["  SPACE : pause",
                             "  UP    : increase FPS",
                             "  DOWN  : decrease FPS",
                             "  -     : toggle compact node rendering",
@@ -244,6 +233,13 @@ class StateMachine:
         self._print_help()
 
     def _print_help(self):
-        print("\n" + "=" * 48)
+        total_lines = len(self._HELP.get(self.current_state, [])) + 1
+
+        for _ in range (self._last_help_lines):
+            print("\033[A\033[K", end="")
+
+        print(f"{SS}{self.current_state.value}{RESET}")
         for line in self._HELP.get(self.current_state, []):
             print(line)
+
+        self._last_help_lines = total_lines
