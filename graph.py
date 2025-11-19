@@ -170,18 +170,8 @@ class Graph:
     def remove_node(self, n) -> None:
         # Get all edges having n as vertex and other vertices
         E: List[Edge] = list(self.adj_mat[n.id].values())
-        others: List[Node] = []
         for e in E:
-            others.append(e.other(n))
-
-        # Delete edges from self.E
-        for e in E:
-            self.E.remove(e)
-
-        # Delete references to edges
-        for o in others:
-            del self.adj_mat[o.id][n.id]
-            del self.adj_mat[n.id]
+            self.remove_edge(e)
 
         # Delete n
         self.V.remove(n)
@@ -641,6 +631,7 @@ class Graph:
     def reset_graph(self) -> None:
         self.clear_edges()
         self.clear_vertices()
+        self.adj_mat = defaultdict(dict)
         Node._next_id = 0
 
     def clear_edges(self) -> None:
@@ -706,6 +697,7 @@ class Graph:
         v = to_remove.b
         if u.id in self.adj_mat and v.id in self.adj_mat[u.id]:
             del self.adj_mat[u.id][v.id]
+            del self.adj_mat[v.id][u.id]
 
         self.E.remove(to_remove)
 

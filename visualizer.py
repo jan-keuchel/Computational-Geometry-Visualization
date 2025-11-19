@@ -67,7 +67,7 @@ class Visualizer:
 
         self.state_machine.set_action(State.NORMAL, pygame.K_d, self.reset_all)
 
-        self.state_machine.set_action(State.MANUAL_NODES, pygame.K_d, self.G.clear_vertices)
+        self.state_machine.set_action(State.MANUAL_NODES, pygame.K_d, self.reset_all)
         self.state_machine.set_action(State.MANUAL_NODES, pygame.BUTTON_LEFT, self._helper_add_node)
         self.state_machine.set_action(State.MANUAL_NODES, pygame.BUTTON_RIGHT, self._helper_remove_node)
 
@@ -77,7 +77,7 @@ class Visualizer:
 
         self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.K_d, lambda: print("TODO: Delete all segments"))
         self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_LEFT, self._helper_add_segment)
-        self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_RIGHT, lambda: print("TODO: remove segment"))
+        self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_RIGHT, self._helper_remove_segment)
 
 
         self.state_machine.set_action(State.GEN_NODES, pygame.K_RETURN, self._helper_new_nodes_and_render)
@@ -219,6 +219,53 @@ class Visualizer:
         self._helper_add_node()
         self._helper_add_edge()
 
+    def _helper_remove_segment(self) -> None:
+        x, y = pygame.mouse.get_pos()
+
+        # Find all clicked on nodes
+        selected: Node | None = None
+        for n in self.G.V:
+            if Node.point_inside_node(n, Point(x, y)):
+                if selected is None:
+                    selected = n
+                else:
+                    print("Warning: Please only select a single node.")
+                    return
+        
+        # Didn't click any node
+        if selected is None:
+            return
+
+        # Check if selected node is of degree 1
+        connected_to = self.G.adj_mat.get(selected.id, None)
+        if connected_to is not None:
+            if len(connected_to) != 1:
+                print(f"Warning: You can only select nodes of degree 1. (len={len(connected_to)})")
+                for k in connected_to:
+                    print(f"connected to: {k}")
+                for v in connected_to.values():
+                    print(f"edge values: {v}")
+                return
+
+        # Check if another node has been clicked before
+        if self.last_node_selected is None:
+            self.last_node_selected = selected
+            return
+
+        a_connected_to = self.G.adj_mat.get(self.last_node_selected.id, None)
+        b_connected_to = connected_to
+        if a_connected_to is not None and b_connected_to is not None:
+            # Check if both nodes are connected to one another
+            if selected.id in a_connected_to and \
+                self.last_node_selected.id in b_connected_to:
+
+                self.G.remove_edge(self.G.adj_mat[self.last_node_selected.id][selected.id])
+                self.G.remove_node(self.last_node_selected)
+                self.G.remove_node(selected)
+
+                self.last_node_selected = None
+            else:
+                self.last_node_selected = selected
         
     def process_input(self, event: pygame.event.Event) -> None:
         self.latest_input_event = event
