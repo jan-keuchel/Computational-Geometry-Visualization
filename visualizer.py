@@ -75,7 +75,7 @@ class Visualizer:
         self.state_machine.set_action(State.MANUAL_EDGES, pygame.BUTTON_LEFT, self._helper_add_edge)
         self.state_machine.set_action(State.MANUAL_EDGES, pygame.BUTTON_RIGHT, self._helper_remove_edge)
 
-        self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.K_d, lambda: print("TODO: Delete all segments"))
+        self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.K_d, self._helper_clear_segments)
         self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_LEFT, self._helper_add_segment)
         self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_RIGHT, self._helper_remove_segment)
 
@@ -266,6 +266,22 @@ class Visualizer:
                 self.last_node_selected = None
             else:
                 self.last_node_selected = selected
+
+    def _helper_clear_segments(self) -> None:
+        nodes_to_remove: List[Node] = []
+        for n in self.G.V:
+            if len(self.G.adj_mat[n.id]) == 1:
+                other_id = next(iter(self.G.adj_mat[n.id]))
+                if len(self.G.adj_mat[other_id]) == 1:
+                    if n not in nodes_to_remove:
+                        nodes_to_remove.append(n)
+                    other = (self.G.adj_mat[n.id][other_id].other(n))
+                    if other not in nodes_to_remove:
+                        nodes_to_remove.append(other)
+
+        for n in nodes_to_remove:
+            self.G.remove_node(n)
+
         
     def process_input(self, event: pygame.event.Event) -> None:
         self.latest_input_event = event
