@@ -1,5 +1,6 @@
 # pyright: reportMissingImports=false
 import pygame
+import math
 
 import constants
 from constants import NODE_FULL_SIZE, NODE_COMPACT_SIZE, FOREGROUND
@@ -8,6 +9,20 @@ from point import Point
 
 class Node:
     _next_id = 0
+    compact_nodes = True
+
+    @classmethod
+    def point_inside_node(cls, n: 'Node', p: Point) -> bool:
+        if Node.compact_nodes:
+            w = NODE_COMPACT_SIZE
+            if p.x > n.p.x - w/2 and p.x < n.p.x + w/2 and \
+                p.y > n.p.y - w/2 and p.y < n.p.y + w/2:
+                return True
+        else:
+            if math.sqrt((p.x - n.p.x)**2 + (p.y - n.p.y)**2) <= NODE_FULL_SIZE:
+                return True
+
+        return False
 
     def __init__(self, p:Point) -> None:
         self.id = Node._next_id
@@ -15,11 +30,11 @@ class Node:
 
         self.p = p
 
-    def draw(self, screen, draw_compact=False, color=None) -> None:
+    def draw(self, screen, color=None) -> None:
         if color == None:
             color = constants.BLUE
 
-        if draw_compact:
+        if Node.compact_nodes:
             w = NODE_COMPACT_SIZE
             pygame.gfxdraw.box(screen, (self.p.x - w/2, self.p.y - w/2, w, w), color)
         else:
@@ -31,11 +46,10 @@ class Node:
             screen.blit(text_surface, text_rect)
 
 class NodeDrawContainer:
-    def __init__(self, n:Node, draw_compact:bool, color) -> None:
+    def __init__(self, n:Node, color) -> None:
         self.n = n
-        self.draw_compact = draw_compact
         self.color = color
 
     def draw(self, screen) -> None:
-        self.n.draw(screen, self.draw_compact, self.color)
+        self.n.draw(screen, self.color)
         

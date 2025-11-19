@@ -4,15 +4,84 @@ from node import Node, NodeDrawContainer
 import pygame
 import pygame.gfxdraw
 
-from typing import Callable, Dict, List, Union
+from typing import Callable, Dict, Generator, List, Union
 from collections import defaultdict
 
 import constants
-from constants import BORDER_OFFSET, WIN_HEIGHT, WIN_WIDTH, graph_type, convex_hull_algos, line_segment_intersection_algos, mst_algos
+from constants import BORDER_OFFSET, WIN_HEIGHT, WIN_WIDTH, graph_type, convex_hull_algos, lsi_algos, mst_algos
 import math_helper
 from point import Point
 
 import random
+
+
+
+
+
+# ------------------------------------
+# --------- Draw Containers ----------
+# ------------------------------------
+
+Drawable = Union[NodeDrawContainer, EdgeDrawContainer]
+
+class GraphDrawContainer:
+
+    @classmethod
+    def convert_edge_list_to_Drawable_list(cls, edges: List[Edge], col, w:int) -> List['Drawable']:
+        edc_list: List[Drawable] = [
+            EdgeDrawContainer(e, color=col, width=w)
+            for e in edges
+        ]
+        return edc_list
+
+    @classmethod
+    def convert_node_chain_to_GDC(cls, 
+                                  nodes: List[Node],
+                                  n_col, 
+                                  e_col,
+                                  w:int) -> 'GraphDrawContainer':
+
+        gdc: 'GraphDrawContainer' = GraphDrawContainer()
+
+        edc_list: List[Drawable] = []
+        for i in range(len(nodes) - 1):
+            edc_list.append(EdgeDrawContainer(
+                Edge(nodes[i], nodes[i+1]), 
+                e_col,
+                w
+            ))
+        edc_list.append((EdgeDrawContainer(
+            Edge(nodes[-1], nodes[0]),
+            e_col,
+            w
+        )))
+        gdc.add_layer(edc_list)
+
+        nodes_layer: List[Drawable] = [
+            NodeDrawContainer(n, n_col)
+            for n in nodes
+        ]
+        gdc.add_layer(nodes_layer)
+
+        return gdc
+
+    def __init__(self) -> None:
+        self.layers: List[List[Drawable]] = []
+
+    def add_layer(self, layer: List[Drawable]) -> None:
+        self.layers.append(layer)
+
+    def get_all_drawables(self) -> List[Drawable]:
+        return [drawable for layer in self.layers for drawable in layer]
+
+    def empty(self) -> None:
+        self.layers.clear()
+
+
+
+
+
+
 
 # --------------------------
 # --------- Graph ----------
@@ -36,17 +105,23 @@ class Graph:
         }
 
         self._convex_hull_algos: Dict[convex_hull_algos, Callable] = {
-            convex_hull_algos.BRUTE_FORCE: self._CH_brute_force,
-            convex_hull_algos.GRAHAM_SCAN: self._CH_graham_scan,
-            convex_hull_algos.JARVIS_MARCH: self._CH_jarvis_march,
+            convex_hull_algos.BRUTE_FORCE: self.CH_brute_force,
+            convex_hull_algos.GRAHAM_SCAN: self.CH_graham_scan,
+            convex_hull_algos.JARVIS_MARCH: self.CH_jarvis_march,
         }
 
-        self._intersect_algos: Dict[line_segment_intersection_algos, Callable] = {
-            line_segment_intersection_algos.BRUTE_FORCE: self._LSI_brute_force,
+        self._intersect_algos: Dict[lsi_algos, Callable] = {
+            lsi_algos.BRUTE_FORCE: self.LSI_brute_force,
         }
+
+        # For Generators
+        self.current_algorithm = None
 
     def set_anim_step_callback(self, cb:Callable) -> None:
         self.anim_step = cb
+
+    def step(self):
+        pass
 
 
     # -------------------------------------
@@ -86,28 +161,20 @@ class Graph:
             self.V.append(Node(Point(x, y)))
 
 
-    def add_node(self, p:Point) -> None:
-        self.V.append(Node(p));
+    def add_node(self, p:Point|Node) -> None:
+        if isinstance(p, Point):
+            self.V.append(Node(p));
+        else:
+            self.V.append(p)
 
     def pop_node(self) -> None:
         self.remove_node(self.V[-1])
 
     def remove_node(self, n) -> None:
-
         # Get all edges having n as vertex and other vertices
         E: List[Edge] = list(self.adj_mat[n.id].values())
-        others: List[Node] = []
         for e in E:
-            others.append(e.other(n))
-
-        # Delete edges from self.E
-        for e in E:
-            self.E.remove(e)
-
-        # Delete references to edges
-        for o in others:
-            del self.adj_mat[o.id][n.id]
-            del self.adj_mat[n.id]
+            self.remove_edge(e)
 
         # Delete n
         self.V.remove(n)
@@ -119,13 +186,7 @@ class Graph:
     # -------------------------------------
     # ----------- Convex Hull  ------------
     # -------------------------------------
-
-    def calculate_convex_hull(self, algo:convex_hull_algos, animate=False) -> List[Node]:
-        ch_algo = self._convex_hull_algos[algo]
-        return ch_algo(animate)
-
-
-    def _CH_brute_force(self, animate=False) -> List[Node]:
+    def CH_brute_force(self) -> Generator[GraphDrawContainer, None, List[Node]]:
         """
         `_CH_brute_force` computes the convex hull of the graphs nodes.
         This is done by testing for every possible edge, if every other
@@ -145,26 +206,28 @@ class Graph:
                 if u.id == v.id: 
                     continue
 
-                if animate:
-                    draw_container: GraphDrawContainer = GraphDrawContainer()
+                # ------ Configure draw container for animation / animate
+                draw_container: GraphDrawContainer = GraphDrawContainer()
 
-                    # Add current Edge
-                    draw_container.add_layer(convert_edge_list_to_Drawable_list([Edge(u,v)], constants.RED, 3))
+                # Add current Edge
+                draw_container.add_layer(GraphDrawContainer.convert_edge_list_to_Drawable_list([Edge(u,v)], constants.RED, 3))
 
-                    # Add asured CH edges
-                    CH_layer: List[Drawable] = [
-                        EdgeDrawContainer(e, color=constants.GREEN, width=5)
-                        for e in CH_edges
-                    ]
-                    draw_container.add_layer(CH_layer)
+                # Add asured CH edges
+                CH_layer: List[Drawable] = [
+                    EdgeDrawContainer(e, color=constants.GREEN, width=5)
+                    for e in CH_edges
+                ]
+                draw_container.add_layer(CH_layer)
 
-                    # Add nodes for the end rendering
-                    nodes_layer: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=True, color=constants.BLUE)
-                        for n in self.V
-                    ]
-                    draw_container.add_layer(nodes_layer)
-                    self.anim_step(draw_container)
+                # Add nodes for the end rendering
+                nodes_layer: List[Drawable] = [
+                    NodeDrawContainer(n, color=constants.BLUE)
+                    for n in self.V
+                ]
+                draw_container.add_layer(nodes_layer)
+
+                yield draw_container
+                # ------ Configure draw container for animation
 
                 valid = True
                 for w in self.V:
@@ -195,7 +258,7 @@ class Graph:
 
         return CH
 
-    def _CH_graham_scan(self, animate=False) -> List[Node]:
+    def CH_graham_scan(self) -> Generator[GraphDrawContainer, None, List[Node]]:
         """
         `_CH_graham_scan` is an implementation of the Graham's scan algorithm
         for computing the convex hull of a set of vertices.The way the 
@@ -215,7 +278,42 @@ class Graph:
         for i in range(2, len(V)):
             U.append(V[i])
 
-            if animate:
+            # ------ Configure draw container for animation / animate
+            draw_container: GraphDrawContainer = GraphDrawContainer()
+
+            # Add edges of the current hull
+            current_upper_hull: List[Drawable] = []
+            for k in range(len(U) - 1):
+                current_upper_hull.append(EdgeDrawContainer(
+                    Edge(U[k], U[k+1]), color=constants.ORANGE, width=3
+                ))
+            draw_container.add_layer(current_upper_hull)
+
+            # Add generic nodes
+            nodes_layer: List[Drawable] = [
+                NodeDrawContainer(n, color=constants.BLUE)
+                for n in self.V
+            ]
+            draw_container.add_layer(nodes_layer)
+
+            # Add nodes in CH
+            CH_nodes: List[Drawable] = [
+                NodeDrawContainer(n, color=constants.RED)
+                for n in U
+            ]
+            draw_container.add_layer(CH_nodes)
+
+            yield draw_container
+            # ------ Configure draw container for animation / animate
+
+
+            # While at least 3 nodes on the stack and last
+            # 3 nodes make a left hand turn, pop the second to last
+            # node off of the stack.
+            while len(U) > 2 and math_helper.right_of(U[-3].p, U[-2].p, U[-1].p) < 0:
+                U.remove(U[len(U) - 2])
+
+                # ------ Configure draw container for animation / animate
                 draw_container: GraphDrawContainer = GraphDrawContainer()
 
                 # Add edges of the current hull
@@ -228,54 +326,21 @@ class Graph:
 
                 # Add generic nodes
                 nodes_layer: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=True, color=constants.BLUE)
+                    NodeDrawContainer(n, color=constants.BLUE)
                     for n in self.V
                 ]
                 draw_container.add_layer(nodes_layer)
 
                 # Add nodes in CH
                 CH_nodes: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=True, color=constants.RED)
+                    NodeDrawContainer(n, color=constants.RED)
                     for n in U
                 ]
                 draw_container.add_layer(CH_nodes)
 
                 # Draw
-                self.anim_step(draw_container)
-
-
-            # While at least 3 nodes on the stack and last
-            # 3 nodes make a left hand turn, pop the second to last
-            # node off of the stack.
-            while len(U) > 2 and math_helper.right_of(U[-3].p, U[-2].p, U[-1].p) < 0:
-                U.remove(U[len(U) - 2])
-                if animate:
-                    draw_container: GraphDrawContainer = GraphDrawContainer()
-
-                    # Add edges of the current hull
-                    current_upper_hull: List[Drawable] = []
-                    for k in range(len(U) - 1):
-                        current_upper_hull.append(EdgeDrawContainer(
-                            Edge(U[k], U[k+1]), color=constants.ORANGE, width=3
-                        ))
-                    draw_container.add_layer(current_upper_hull)
-
-                    # Add generic nodes
-                    nodes_layer: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=True, color=constants.BLUE)
-                        for n in self.V
-                    ]
-                    draw_container.add_layer(nodes_layer)
-
-                    # Add nodes in CH
-                    CH_nodes: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=True, color=constants.RED)
-                        for n in U
-                    ]
-                    draw_container.add_layer(CH_nodes)
-
-                    # Draw
-                    self.anim_step(draw_container)
+                yield draw_container
+                # ------ Configure draw container for animation / animate
 
 
 
@@ -290,7 +355,49 @@ class Graph:
             L.append(V[len(V)-1-i])
 
 
-            if animate:
+            # ------ Configure draw container for animation / animate
+            draw_container: GraphDrawContainer = GraphDrawContainer()
+
+            # Add Upper Hull
+            current_upper_hull: List[Drawable] = []
+            for k in range(len(U) - 1):
+                current_upper_hull.append(EdgeDrawContainer(
+                    Edge(U[k], U[k+1]), color=constants.GREEN, width=3
+                ))
+            draw_container.add_layer(current_upper_hull)
+
+            # Add edges of the current hull
+            current_upper_hull: List[Drawable] = []
+            for k in range(len(L) - 1):
+                current_upper_hull.append(EdgeDrawContainer(
+                    Edge(L[k], L[k+1]), color=constants.ORANGE, width=3
+                ))
+            draw_container.add_layer(current_upper_hull)
+
+            # Add generic nodes
+            nodes_layer: List[Drawable] = [
+                NodeDrawContainer(n, color=constants.BLUE)
+                for n in self.V
+            ]
+            draw_container.add_layer(nodes_layer)
+
+            # Add nodes in CH
+            CH_nodes: List[Drawable] = [
+                NodeDrawContainer(n, color=constants.RED)
+                for n in L
+            ]
+            draw_container.add_layer(CH_nodes)
+
+            yield draw_container
+            # ------ Configure draw container for animation / animate
+
+
+
+            while len(L) > 2 and math_helper.right_of(L[-3].p, L[-2].p, L[-1].p) < 0:
+
+
+                # ------ Configure draw container for animation / animate
+                L.remove(L[len(L) - 2])
                 draw_container: GraphDrawContainer = GraphDrawContainer()
 
                 # Add Upper Hull
@@ -311,60 +418,20 @@ class Graph:
 
                 # Add generic nodes
                 nodes_layer: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=True, color=constants.BLUE)
+                    NodeDrawContainer(n, color=constants.BLUE)
                     for n in self.V
                 ]
                 draw_container.add_layer(nodes_layer)
 
                 # Add nodes in CH
                 CH_nodes: List[Drawable] = [
-                    NodeDrawContainer(n, draw_compact=True, color=constants.RED)
+                    NodeDrawContainer(n, color=constants.RED)
                     for n in L
                 ]
                 draw_container.add_layer(CH_nodes)
 
-                # Draw
-                self.anim_step(draw_container)
-
-            while len(L) > 2 and math_helper.right_of(L[-3].p, L[-2].p, L[-1].p) < 0:
-
-
-                if animate:
-                    L.remove(L[len(L) - 2])
-                    draw_container: GraphDrawContainer = GraphDrawContainer()
-
-                    # Add Upper Hull
-                    current_upper_hull: List[Drawable] = []
-                    for k in range(len(U) - 1):
-                        current_upper_hull.append(EdgeDrawContainer(
-                            Edge(U[k], U[k+1]), color=constants.GREEN, width=3
-                        ))
-                    draw_container.add_layer(current_upper_hull)
-
-                    # Add edges of the current hull
-                    current_upper_hull: List[Drawable] = []
-                    for k in range(len(L) - 1):
-                        current_upper_hull.append(EdgeDrawContainer(
-                            Edge(L[k], L[k+1]), color=constants.ORANGE, width=3
-                        ))
-                    draw_container.add_layer(current_upper_hull)
-
-                    # Add generic nodes
-                    nodes_layer: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=True, color=constants.BLUE)
-                        for n in self.V
-                    ]
-                    draw_container.add_layer(nodes_layer)
-
-                    # Add nodes in CH
-                    CH_nodes: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=True, color=constants.RED)
-                        for n in L
-                    ]
-                    draw_container.add_layer(CH_nodes)
-
-                    # Draw
-                    self.anim_step(draw_container)
+                yield draw_container
+                # ------ Configure draw container for animation / animate
 
         # Remove duplicate Nodes
         L.pop(0)
@@ -374,7 +441,7 @@ class Graph:
         return U
 
 
-    def _CH_jarvis_march(self, animate=False) -> List[Node]:
+    def CH_jarvis_march(self) -> Generator[GraphDrawContainer, None, List[Node]]:
         """
         `_CH_jarvis_march` is an implementation of the Jarvis March algorithm
         for computing the convex hull of a set of vertices. The way the 
@@ -406,45 +473,45 @@ class Graph:
                 if math_helper.right_of(current.p, new_node.p, p.p) < 0:
                     new_node = p
 
-                if animate:
-                    draw_container: GraphDrawContainer = GraphDrawContainer()
+                # ------ Configure draw container for animation / animate
+                draw_container: GraphDrawContainer = GraphDrawContainer()
 
-                    # Add CH
-                    current_CH: List[Drawable] = []
-                    for k in range(len(CH) - 1):
-                        current_CH.append(EdgeDrawContainer(
-                            Edge(CH[k], CH[k+1]), color=constants.GREEN, width=3
-                        ))
-                    draw_container.add_layer(current_CH)
+                # Add CH
+                current_CH: List[Drawable] = []
+                for k in range(len(CH) - 1):
+                    current_CH.append(EdgeDrawContainer(
+                        Edge(CH[k], CH[k+1]), color=constants.GREEN, width=3
+                    ))
+                draw_container.add_layer(current_CH)
 
-                    # Add currently considered new edge
-                    draw_container.add_layer(
-                        convert_edge_list_to_Drawable_list(
-                            [Edge(current, new_node)], constants.ORANGE, 3)
-                    )
+                # Add currently considered new edge
+                draw_container.add_layer(
+                    GraphDrawContainer.convert_edge_list_to_Drawable_list(
+                        [Edge(current, new_node)], constants.ORANGE, 3)
+                )
 
-                    # Add edge that is currently tested
-                    draw_container.add_layer(
-                        convert_edge_list_to_Drawable_list(
-                            [Edge(current, p)], constants.RED, 3)
-                    )
+                # Add edge that is currently tested
+                draw_container.add_layer(
+                    GraphDrawContainer.convert_edge_list_to_Drawable_list(
+                        [Edge(current, p)], constants.RED, 3)
+                )
 
-                    # Add generic nodes
-                    nodes_layer: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=True, color=constants.BLUE)
-                        for n in self.V
-                    ]
-                    draw_container.add_layer(nodes_layer)
+                # Add generic nodes
+                nodes_layer: List[Drawable] = [
+                    NodeDrawContainer(n, color=constants.BLUE)
+                    for n in self.V
+                ]
+                draw_container.add_layer(nodes_layer)
 
-                    # Add nodes in CH
-                    CH_nodes: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=True, color=constants.RED)
-                        for n in CH
-                    ]
-                    draw_container.add_layer(CH_nodes)
+                # Add nodes in CH
+                CH_nodes: List[Drawable] = [
+                    NodeDrawContainer(n, color=constants.RED)
+                    for n in CH
+                ]
+                draw_container.add_layer(CH_nodes)
 
-                    # Draw
-                    self.anim_step(draw_container)
+                yield draw_container
+                # ------ Configure draw container for animation / animate
 
 
 
@@ -468,46 +535,43 @@ class Graph:
     # --------------------------------------------------
     # ----------- Line-segment intersection  ------------
     # --------------------------------------------------
-    def calculate_line_segement_intersections(self, algo:line_segment_intersection_algos, animate=False) -> List[Node]:
-        intersect_algo = self._intersect_algos[algo]
-        return intersect_algo(animate)
-
-    def _LSI_brute_force(self, animate=False) -> List[Node]:
+    def LSI_brute_force(self) -> Generator[GraphDrawContainer, None, List[Node]]:
         intersects: List[Node] = []
         p: Point = Point(0, 0)
         for i in range(len(self.E)-1):
             for j in range(i+1, len(self.E)):
 
-                if animate:
-                    draw_container: GraphDrawContainer = GraphDrawContainer()
+                # ------ Configure draw container for animation / animate
+                draw_container: GraphDrawContainer = GraphDrawContainer()
 
-                    # Add segments for the end rendering
-                    segments_layer: List[Drawable] = [
-                        EdgeDrawContainer(e, color=constants.FOREGROUND, width=1)
-                        for e in self.E
-                    ]
-                    draw_container.add_layer(segments_layer)
+                # Add segments for the end rendering
+                segments_layer: List[Drawable] = [
+                    EdgeDrawContainer(e, color=constants.FOREGROUND, width=1)
+                    for e in self.E
+                ]
+                draw_container.add_layer(segments_layer)
 
-                    # Add current Edges
-                    draw_container.add_layer(convert_edge_list_to_Drawable_list(
-                        [self.E[i], self.E[j]], 
-                        constants.RED, 3))
+                # Add current Edges
+                draw_container.add_layer(GraphDrawContainer.convert_edge_list_to_Drawable_list(
+                    [self.E[i], self.E[j]], 
+                    constants.RED, 3))
 
-                    # Add nodes for the end rendering
-                    nodes_layer: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=True, color=constants.BLUE)
-                        for n in self.V
-                    ]
-                    draw_container.add_layer(nodes_layer)
+                # Add nodes for the end rendering
+                nodes_layer: List[Drawable] = [
+                    NodeDrawContainer(n, color=constants.BLUE)
+                    for n in self.V
+                ]
+                draw_container.add_layer(nodes_layer)
 
-                    # Add intersection points
-                    intersections_draw: List[Drawable] = [
-                        NodeDrawContainer(n, draw_compact=True, color=constants.GREEN)
-                        for n in intersects
-                    ]
-                    draw_container.add_layer(intersections_draw)
+                # Add intersection points
+                intersections_draw: List[Drawable] = [
+                    NodeDrawContainer(n, color=constants.GREEN)
+                    for n in intersects
+                ]
+                draw_container.add_layer(intersections_draw)
 
-                    self.anim_step(draw_container)
+                yield draw_container
+                # ------ Configure draw container for animation / animate
 
                 if math_helper.point_line_segment_intersection(
                     self.E[i].a.p, self.E[i].b.p,
@@ -567,9 +631,11 @@ class Graph:
         # TODO
         return True
 
-    def empty_graph(self) -> None:
+    def reset_graph(self) -> None:
         self.clear_edges()
         self.clear_vertices()
+        self.adj_mat = defaultdict(dict)
+        Node._next_id = 0
 
     def clear_edges(self) -> None:
         """
@@ -581,6 +647,7 @@ class Graph:
         self.adj_mat.clear()
 
     def clear_vertices(self) -> None:
+        # TODO: update adj_mat
         self.V.clear()
 
 
@@ -633,6 +700,7 @@ class Graph:
         v = to_remove.b
         if u.id in self.adj_mat and v.id in self.adj_mat[u.id]:
             del self.adj_mat[u.id][v.id]
+            del self.adj_mat[v.id][u.id]
 
         self.E.remove(to_remove)
 
@@ -673,9 +741,9 @@ class Graph:
     # --------- Rendering ----------
     # ------------------------------
 
-    def draw(self, screen, edge_col=None, edge_width=1, node_col=None, node_draw_compact=False) -> None:
+    def draw(self, screen, edge_col=None, edge_width=1, node_col=None) -> None:
         self.draw_edges(screen, edge_col, edge_width)
-        self.draw_nodes(screen, node_col, node_draw_compact)
+        self.draw_nodes(screen, node_col)
 
     def draw_edges(self, screen, color=None, width=1) -> None:
         if color == None:
@@ -683,11 +751,11 @@ class Graph:
         for e in self.E:
             e.draw(screen, color, width)
 
-    def draw_nodes(self, screen, color=None, draw_compact=False) -> None:
+    def draw_nodes(self, screen, color=constants.BLUE) -> None:
         if color == None:
             color = constants.FOREGROUND
         for v in self.V:
-            v.draw(screen, draw_compact)
+            v.draw(screen)
 
     def print(self) -> None:
         print("Nodes:")
@@ -766,32 +834,4 @@ class CustomUnion:
     def get_representative(self, idx:int) -> int:
         return self._representatives[idx]
 
-
-
-
-# -------------------------------
-# --------- Animations ----------
-# -------------------------------
-
-Drawable = Union[NodeDrawContainer, EdgeDrawContainer]
-
-def convert_edge_list_to_Drawable_list(edges: List[Edge], col, w:int) -> List['Drawable']:
-    edc_list: List[Drawable] = [
-        EdgeDrawContainer(e, color=col, width=w)
-        for e in edges
-    ]
-    return edc_list
-
-class GraphDrawContainer:
-    def __init__(self) -> None:
-        self.layers: List[List[Drawable]] = []
-
-    def add_layer(self, layer: List[Drawable]) -> None:
-        self.layers.append(layer)
-
-    def get_all_drawables(self) -> List[Drawable]:
-        return [drawable for layer in self.layers for drawable in layer]
-
-    def empty(self) -> None:
-        self.layers.clear()
 

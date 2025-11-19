@@ -26,6 +26,11 @@ FPS = 20
 NODE_COMPACT_SIZE = 8
 NODE_FULL_SIZE = 15
 
+# Menu output
+BOLD = "\033[1m"
+UNDERLINE = "\033[4m"
+SS = f"{BOLD}{UNDERLINE}"
+RESET = "\033[0m"
 
 # -----------------------------------
 # --------- Graph Generation --------
@@ -47,5 +52,11 @@ class convex_hull_algos(Enum):
     JARVIS_MARCH                = 2
 
 
-class line_segment_intersection_algos(Enum):
+class lsi_algos(Enum):
     BRUTE_FORCE                 = 0
+
+
+class problem_types(Enum):
+    CH      = "Convex Hull"
+    LSI     = "Line-segment Intersection"
+    T       = "Triangulation"
