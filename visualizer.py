@@ -60,6 +60,9 @@ class Visualizer:
         self.res_MST: List[Edge] = []
 
     def set_sm_actions(self) -> None:
+
+        self.state_machine.set_action(State.NORMAL, pygame.K_d, self.reset_all)
+
         self.state_machine.set_action(State.MANUAL_NODES, pygame.K_d, self.G.clear_vertices)
         self.state_machine.set_action(State.MANUAL_NODES, pygame.BUTTON_LEFT, lambda: print("TODO: add node"))
         self.state_machine.set_action(State.MANUAL_NODES, pygame.BUTTON_RIGHT, lambda: print("TODO: remove node"))
@@ -190,6 +193,13 @@ class Visualizer:
                 self.res_LSI = e.value
                 self.render_result()
             
+
+    def reset_all(self) -> None:
+        self.reset_graph()
+        self.res_CH.clear()
+        self.res_LSI.clear()
+        self.res_MST.clear()
+        self.latest_simulation_state = GraphDrawContainer()
 
     def reset_graph(self) -> None:
         """
