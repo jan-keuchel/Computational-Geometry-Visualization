@@ -457,11 +457,20 @@ class Visualizer:
             print(f"Error: Problemtype is not set properly: {self.current_problem}, provided algorithm: {algo}")
 
     def step(self) -> None:
+        """
+        `step` is a wrapper that both calls `step_simulation` 
+        and `update_screen` such that, essentially, the next 
+        state of the algorithm is rendered.
+        """
         self.step_simulation()
 
         self.update_screen()
     
     def step_simulation(self) -> None:
+        """
+        `step_simulation` calls the `next()` function on the currently
+        active generator function. The screen is not updated automatically.
+        """
 
         if self.current_problem == constants.problem_types.CH:
             if self.gen_CH is None:
@@ -489,18 +498,23 @@ class Visualizer:
             
 
     def reset_all(self) -> None:
-        self.reset_graph()
+        """
+        `reset_all` deletes the entire graph and the associated
+        result data of previous calculations.
+        """
+        self.reset_graph_calculations()
+        self.G.reset_graph()
+
+    def reset_graph_calculations(self) -> None:
+        """
+        `reset_graph` deletes all calcualted structures such as 
+        convex hulls or MSTs. The graph structure itself stays
+        unmodified.
+        """
         self.res_CH.clear()
         self.res_LSI.clear()
         self.res_MST.clear()
         self.latest_simulation_state = GraphDrawContainer()
-
-    def reset_graph(self) -> None:
-        """
-        `reset_graph` deletes all calcualted structures such as 
-        convex hulls or MSTs. The nodes stay the same.
-        """
-        self.G.reset_graph()
 
     def new_nodes(self, num_nodes=10) -> None:
         """
@@ -522,15 +536,6 @@ class Visualizer:
             v: Node = random.choice(nodes)
             nodes.remove(v)
             self.G.add_edge(u, v)
-
-    def new_graph(self, type: constants.graph_type, num_nodes=20) -> None:
-        self.G.generate_graph(type, num_nodes)
-
-    def mst(self, algo:constants.mst_algos) -> None:
-        if self.G.E == None:
-            self.new_nodes() # TODO: Generate fully connected
-
-        self.res_MST  = self.G.mst(algo)
 
     # -------------------------------------------
     # ------------- Rendering -------------------
