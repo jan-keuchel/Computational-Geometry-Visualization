@@ -75,19 +75,23 @@ class Visualizer:
         self.state_machine.set_action(State.MANUAL_NODES, pygame.K_d, self.reset_all)
         self.state_machine.set_action(State.MANUAL_NODES, pygame.BUTTON_LEFT, self._helper_add_node)
         self.state_machine.set_action(State.MANUAL_NODES, pygame.BUTTON_RIGHT, self._helper_remove_node)
+        self.state_machine.set_action(State.MANUAL_NODES, pygame.K_ESCAPE, self._helper_reset_last_node_selected)
 
         self.state_machine.set_action(State.MANUAL_EDGES, pygame.K_d, self.G.clear_edges)
         self.state_machine.set_action(State.MANUAL_EDGES, pygame.BUTTON_LEFT, self._helper_add_edge)
         self.state_machine.set_action(State.MANUAL_EDGES, pygame.BUTTON_RIGHT, self._helper_remove_edge)
+        self.state_machine.set_action(State.MANUAL_EDGES, pygame.K_ESCAPE, self._helper_reset_last_node_selected)
 
         self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.K_d, self._helper_clear_segments)
         self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_LEFT, self._helper_add_segment)
         self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.BUTTON_RIGHT, self._helper_remove_segment)
+        self.state_machine.set_action(State.MANUAL_SEGMENTS, pygame.K_ESCAPE, self._helper_reset_last_node_selected)
 
         self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.BUTTON_LEFT, self._helper_add_node_to_polygon)
         self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.BUTTON_RIGHT, self._helper_remove_node_from_polygon)
-        self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.K_RETURN, self._helper_from_polygon_cycle)
+        self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.K_RETURN, self._helper_form_polygon_cycle)
         self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.K_ESCAPE, self._helper_abort_polygon)
+        self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.K_ESCAPE, self._helper_reset_last_node_selected)
 
         self.state_machine.set_action(State.GEN_NODES, pygame.K_RETURN, lambda: self.new_nodes(self.number_of_nodes_to_generate))
         self.state_machine.set_action(State.GEN_NODES, pygame.K_UP,    lambda: self._helper_update_num_nodes_gen(1))
@@ -129,6 +133,9 @@ class Visualizer:
 
     def toggle_compact_nodes(self) -> None:
         Node.compact_nodes = not Node.compact_nodes
+
+    def _helper_reset_last_node_selected(self) -> None:
+        self.last_node_selected = None
 
     def _helper_update_num_nodes_gen(self, change: int) -> None:
         """
@@ -352,11 +359,14 @@ class Visualizer:
         self.current_polygon_node_chain.append(n)
         self.G.add_node(n)
 
+        self.last_node_selected = n
+
         if len(self.current_polygon_node_chain) == 1:
             return
 
         self.G.add_edge(self.current_polygon_node_chain[-2],
                         self.current_polygon_node_chain[-1])
+
 
     def _helper_remove_node_from_polygon(self) -> None:
         """
@@ -368,8 +378,13 @@ class Visualizer:
 
         self.G.pop_node()
         self.current_polygon_node_chain.pop()
+        
+        if len(self.current_polygon_node_chain) > 0:
+            self.last_node_selected = self.current_polygon_node_chain[-1]
+        else:
+            self.last_node_selected = None
 
-    def _helper_from_polygon_cycle(self) -> None:
+    def _helper_form_polygon_cycle(self) -> None:
         """
         `_helper_from_polygon_cycle` connects the last node added to
         `self.current_polygon_node_chain` with the first one if there are
@@ -398,6 +413,7 @@ class Visualizer:
                     self.G.V[last - (i - first)] = temp
 
             self.current_polygon_node_chain.clear()
+            self.last_node_selected = None
 
     def _helper_abort_polygon(self) -> None:
         """
@@ -549,10 +565,23 @@ class Visualizer:
         for d in items:
             d.draw(self.window.screen)
 
+    def render_highlights(self) -> None:
+        if self.last_node_selected is None:
+            return
+
+        self.last_node_selected.draw(
+            self.window.screen, 
+            constants.ORANGE
+        )
+
     def update_screen(self) -> None:
         self.clear_screen()
+        # Draw the underlying graph
         self.G.draw(self.window.screen, constants.EDGE_COLOR, node_col=constants.BLUE)
+        # Draw state of the algorithm
         self.render_state()
+        # Draw further highlighted nodes
+        self.render_highlights()
         self.display_screen()
 
     def render_result(self) -> None:
