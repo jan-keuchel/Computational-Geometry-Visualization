@@ -91,7 +91,6 @@ class Visualizer:
         self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.BUTTON_RIGHT, self._helper_remove_node_from_polygon)
         self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.K_RETURN, self._helper_form_polygon_cycle)
         self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.K_ESCAPE, self._helper_abort_polygon)
-        self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.K_ESCAPE, self._helper_reset_last_node_selected)
 
         self.state_machine.set_action(State.GEN_NODES, pygame.K_RETURN, lambda: self.new_nodes(self.number_of_nodes_to_generate))
         self.state_machine.set_action(State.GEN_NODES, pygame.K_UP,    lambda: self._helper_update_num_nodes_gen(1))
@@ -423,6 +422,8 @@ class Visualizer:
         for n in self.current_polygon_node_chain:
             self.G.remove_node(n)
         self.current_polygon_node_chain.clear()
+
+        self._helper_reset_last_node_selected()
 
 
     def _helper_clear_segments(self) -> None:
