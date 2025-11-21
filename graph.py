@@ -184,6 +184,11 @@ class Graph:
         for e in E:
             self.remove_edge(e)
 
+        # Remove polygon structure if n was part of polygon
+        if self.polygon_map.get(n.id, None) is not None:
+            for m in self.polygon_map[n.id]:
+                self.polygon_map[m.id] = []
+
         # Delete n
         self.V.remove(n)
 
