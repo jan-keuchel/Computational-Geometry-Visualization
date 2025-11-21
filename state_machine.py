@@ -244,3 +244,6 @@ class StateMachine:
             print(line)
 
         self._last_help_lines = total_lines
+
+    def inc_num_help_lines(self) -> None:
+        self._last_help_lines += 1

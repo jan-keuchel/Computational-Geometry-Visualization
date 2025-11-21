@@ -206,7 +206,8 @@ class Visualizer:
                 if selected is None:
                     selected = n
                 else:
-                    print("Warning: Please only select a single node.")
+                    print(f"{constants.WARNING}Warning: Please only select a single node.{constants.RESET}")
+                    self.state_machine.inc_num_help_lines()
                     return
         
         # Didn't click any node
@@ -254,7 +255,8 @@ class Visualizer:
                 if selected is None:
                     selected = n
                 else:
-                    print("Warning: Please only select a single node.")
+                    print(f"{constants.WARNING}Warning: Please only select a single node.{constants.RESET}")
+                    self.state_machine.inc_num_help_lines()
                     return
         
         # Didn't click any node
@@ -290,7 +292,8 @@ class Visualizer:
         # Check for click onto existing node
         for n in self.G.V:
             if Node.point_inside_node(n, Point(x, y)):
-                print("Warning: Please don't click onto existing nodes when adding a segment.")
+                print(f"{constants.WARNING}Warning: Please don't click onto existing nodes when adding a segment.{constants.RESET}")
+                self.state_machine.inc_num_help_lines()
                 return
 
         self._helper_add_node()
@@ -312,7 +315,8 @@ class Visualizer:
                 if selected is None:
                     selected = n
                 else:
-                    print("Warning: Please only select a single node.")
+                    print(f"{constants.WARNING}Warning: Please only select a single node.{constants.RESET}")
+                    self.state_machine.inc_num_help_lines()
                     return
         
         # Didn't click any node
@@ -323,7 +327,8 @@ class Visualizer:
         connected_to = self.G.adj_mat.get(selected.id, None)
         if connected_to is not None:
             if len(connected_to) != 1:
-                print(f"Warning: You can only select nodes of degree 1. (len={len(connected_to)})")
+                print(f"{constants.WARNING}Warning: You can only select nodes of degree 1. (len={len(connected_to)}){constants.RESET}")
+                self.state_machine.inc_num_help_lines()
                 return
 
         # Check if another node has been clicked before
@@ -395,7 +400,8 @@ class Visualizer:
         for n in self.G.V:
             if Node.point_inside_node(n, Point(x, y)):
                 if selected is not None:
-                    print("Warning: Please only select a single node.")
+                    print(f"{constants.WARNING}Warning: Please only select a single node.{constants.RESET}")
+                    self.state_machine.inc_num_help_lines()
                     return
                 selected = n
 
@@ -494,7 +500,8 @@ class Visualizer:
             gen_func = self.algos_LSI[algo]
             self.gen_LSI = gen_func()
         else:
-            print(f"Error: Problemtype is not set properly: {self.current_problem}, provided algorithm: {algo}")
+            print(f"{constants.ERROR}Error: Problemtype is not set properly: {self.current_problem}, provided algorithm: {algo}{constants.RESET}")
+            self.state_machine.inc_num_help_lines()
 
     def step(self) -> None:
         """
@@ -514,7 +521,8 @@ class Visualizer:
 
         if self.current_problem == constants.problem_types.CH:
             if self.gen_CH is None:
-                print("Error: CH-generator not initialized.")
+                print(f"{constants.ERROR}Error: CH-generator not initialized.{constants.RESET}")
+                self.state_machine.inc_num_help_lines()
                 return
 
             try:
@@ -526,7 +534,8 @@ class Visualizer:
 
         elif self.current_problem == constants.problem_types.LSI:
             if self.gen_LSI is None:
-                print("Error: LSI-generator not initialized.")
+                print(f"{constants.ERROR}Error: LSI-generator not initialized.{constants.RESET}")
+                self.state_machine.inc_num_help_lines()
                 return
 
             try:

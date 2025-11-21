@@ -33,6 +33,12 @@ UNDERLINE = "\033[4m"
 SS = f"{BOLD}{UNDERLINE}"
 RESET = "\033[0m"
 
+# Warnings output
+FONT_ORANGE = "\033[38;5;208m"
+FONT_RED = "\033[91m"
+WARNING = f"{BOLD}{FONT_ORANGE}"
+ERROR = f"{BOLD}{FONT_RED}"
+
 # -----------------------------------
 # --------- Graph Generation --------
 # -----------------------------------
