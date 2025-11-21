@@ -729,7 +729,7 @@ class Graph:
         if self.polygon_map.get(u.id, None) is not None and \
             self.polygon_map.get(v.id, None) is not None:
             for m in self.polygon_map[u.id]:
-                self.polygon_map[m.id] = []
+                del self.polygon_map[m.id]
 
 
     def _gen_fully_connected(self, num_vertices=10) -> None:
