@@ -600,7 +600,7 @@ class Visualizer:
         # Draw polygon nodes in lighter blue
         for p in self.G.polygon_map.values():
             for n in p:
-                n.draw(self.window.screen, constants.NODE_POL_COLOR)
+                n.draw(self.window.screen, constants.PURPLE)
 
     def update_screen(self) -> None:
         self.clear_screen()
