@@ -184,11 +184,6 @@ class Graph:
         for e in E:
             self.remove_edge(e)
 
-        # Remove polygon structure if n was part of polygon
-        if self.polygon_map.get(n.id, None) is not None:
-            for m in self.polygon_map[n.id]:
-                self.polygon_map[m.id] = []
-
         # Delete n
         self.V.remove(n)
 
@@ -706,16 +701,25 @@ class Graph:
     def remove_edge(self, to_remove:Edge) -> None:
         """
         `remove_edge` removes the edge from G.E and updates
-        the adjacency matrix.
+        the adjacency matrix. If the edge was part of a ploygon
+        that polygon is broken up: `self.polygon_map` is updated.
         """
 
+        # Update adjacency matrix
         u = to_remove.a
         v = to_remove.b
         if u.id in self.adj_mat and v.id in self.adj_mat[u.id]:
             del self.adj_mat[u.id][v.id]
             del self.adj_mat[v.id][u.id]
 
+        # Update Edgelist
         self.E.remove(to_remove)
+
+        # Break up polygon if `to_remove` is polygon edge
+        if self.polygon_map.get(u.id, None) is not None:
+            for m in self.polygon_map[u.id]:
+                self.polygon_map[m.id] = []
+
 
     def _gen_fully_connected(self, num_vertices=10) -> None:
         """
