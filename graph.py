@@ -651,8 +651,10 @@ class Graph:
         Meaning: `Graph.E` is cleared and the adjacency matrix `adj_mat`
         is emptied.
         """
+        for e in self.E:
+            self.remove_edge_connections(e)
+
         self.E.clear()
-        self.adj_mat.clear()
 
     def clear_vertices(self) -> None:
         # TODO: update adj_mat
@@ -700,9 +702,20 @@ class Graph:
 
     def remove_edge(self, to_remove:Edge) -> None:
         """
-        `remove_edge` removes the edge from G.E and updates
-        the adjacency matrix. If the edge was part of a ploygon
-        that polygon is broken up: `self.polygon_map` is updated.
+        `remove_edge` is a wrapper around `remove_edge_connections`
+        and removing the edge from `self.E`.
+        """
+        self.remove_edge_connections(to_remove)
+        self.E.remove(to_remove)
+
+
+    def remove_edge_connections(self, to_remove:Edge) -> None:
+        """
+        `remove_edge_connections` updates the adjacency matrix. 
+        If the edge was part of a ploygon that polygon is broken 
+        up: `self.polygon_map` is updated.
+
+        IMPORTANT: `remove_edge_connections` does NOT update `self.E`!
         """
 
         # Update adjacency matrix
@@ -712,11 +725,9 @@ class Graph:
             del self.adj_mat[u.id][v.id]
             del self.adj_mat[v.id][u.id]
 
-        # Update Edgelist
-        self.E.remove(to_remove)
-
         # Break up polygon if `to_remove` is polygon edge
-        if self.polygon_map.get(u.id, None) is not None:
+        if self.polygon_map.get(u.id, None) is not None and \
+            self.polygon_map.get(v.id, None) is not None:
             for m in self.polygon_map[u.id]:
                 self.polygon_map[m.id] = []
 

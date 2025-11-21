@@ -577,6 +577,7 @@ class Visualizer:
         """
         `new_segments` generates `num_segments` random segments in the plane.
         """
+        self.reset_all()
         self.new_nodes(2 * num_segments);
         nodes: List[Node] = self.G.V.copy()
         for _ in range(num_segments):
@@ -599,17 +600,17 @@ class Visualizer:
             d.draw(self.window.screen)
 
     def render_highlights(self) -> None:
+        # Draw polygon nodes in lighter blue
+        for p in self.G.polygon_map.values():
+            for n in p:
+                n.draw(self.window.screen, constants.PURPLE)
+
         # Render last selected node in different color
         if self.last_node_selected is not None:
             self.last_node_selected.draw(
                 self.window.screen, 
                 constants.ORANGE
             )
-
-        # Draw polygon nodes in lighter blue
-        for p in self.G.polygon_map.values():
-            for n in p:
-                n.draw(self.window.screen, constants.PURPLE)
 
     def update_screen(self) -> None:
         self.clear_screen()
