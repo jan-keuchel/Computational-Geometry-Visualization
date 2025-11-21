@@ -89,10 +89,17 @@ class GraphDrawContainer:
 class Graph:
     def __init__(self,  V: List[Node] | None = None,
                  E: List[Edge] | None = None) -> None:
+
+        # G = (V, E)
         self.V: List[Node] = V if V is not None else []
         self.E: List[Edge] = E if E is not None else []
 
+        # adjacency matrix for graph connections
         self.adj_mat: Dict[int, Dict[int, Edge]] = defaultdict(dict)
+
+        # polygon map to track inserted polygons
+        self.polygon_map: Dict[int, List[Node]] = defaultdict(List[Node])
+
 
         self._graph_gen_algos: Dict[graph_type, Callable] = {
             graph_type.FULLY_CONNECTED: self._gen_fully_connected,
@@ -104,6 +111,7 @@ class Graph:
             mst_algos.PRIMS: self._mst_prims,
         }
 
+        # --- Algorithms for different problems
         self._convex_hull_algos: Dict[convex_hull_algos, Callable] = {
             convex_hull_algos.BRUTE_FORCE: self.CH_brute_force,
             convex_hull_algos.GRAHAM_SCAN: self.CH_graham_scan,

@@ -393,7 +393,6 @@ class Visualizer:
             self.G.add_edge(self.current_polygon_node_chain[-1],
                             self.current_polygon_node_chain[0])
 
-            
             # Calculate inner angle sum to check for definition of
             # polygon in counter-clockwise order of vertices
             inner_angle_sum:float = 0
@@ -404,12 +403,14 @@ class Visualizer:
 
             # Reverse order if IAS != 180° * (n-2)
             if math.degrees(inner_angle_sum) - (180 * (len(self.current_polygon_node_chain) - 2)) > 1e-6:
-                first = self.G.V.index(self.current_polygon_node_chain[0])
-                last = self.G.V.index(self.current_polygon_node_chain[-1])
-                for i in range(first, int((first + last) / 2), 1):
-                    temp: Node = self.G.V[i]
-                    self.G.V[i] = self.G.V[last - (i - first)]
-                    self.G.V[last - (i - first)] = temp
+                self.current_polygon_node_chain.reverse()
+
+            # Create a new copy of polygon list and have every item
+            # in the map share the same list.
+            # References to original nodes stay in tact!
+            new_polygon = self.current_polygon_node_chain[:]
+            for n in new_polygon:
+                self.G.polygon_map[n.id] = new_polygon
 
             self.current_polygon_node_chain.clear()
             self.last_node_selected = None
@@ -567,22 +568,26 @@ class Visualizer:
             d.draw(self.window.screen)
 
     def render_highlights(self) -> None:
-        if self.last_node_selected is None:
-            return
+        # Render last selected node in different color
+        if self.last_node_selected is not None:
+            self.last_node_selected.draw(
+                self.window.screen, 
+                constants.ORANGE
+            )
 
-        self.last_node_selected.draw(
-            self.window.screen, 
-            constants.ORANGE
-        )
+        # Draw polygon nodes in lighter blue
+        for p in self.G.polygon_map.values():
+            for n in p:
+                n.draw(self.window.screen, constants.NODE_POL_COLOR)
 
     def update_screen(self) -> None:
         self.clear_screen()
         # Draw the underlying graph
         self.G.draw(self.window.screen, constants.EDGE_COLOR, node_col=constants.BLUE)
-        # Draw state of the algorithm
-        self.render_state()
         # Draw further highlighted nodes
         self.render_highlights()
+        # Draw state of the algorithm
+        self.render_state()
         self.display_screen()
 
     def render_result(self) -> None:
