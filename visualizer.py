@@ -89,6 +89,7 @@ class Visualizer:
 
         self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.BUTTON_LEFT, self._helper_add_node_to_polygon)
         self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.BUTTON_RIGHT, self._helper_remove_node_from_polygon)
+        self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.BUTTON_MIDDLE, self._helper_delete_polygon)
         self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.K_RETURN, self._helper_form_polygon_cycle)
         self.state_machine.set_action(State.MANUAL_POLYGONS, pygame.K_ESCAPE, self._helper_abort_polygon)
 
@@ -382,6 +383,27 @@ class Visualizer:
             self.last_node_selected = self.current_polygon_node_chain[-1]
         else:
             self.last_node_selected = None
+
+    def _helper_delete_polygon(self) -> None:
+        """
+        `_helper_delete_polygon` checks if the selected node is part
+        of a polygon. If so, the entire polygon (Nodes and Edges) are removed.
+        """
+        # Get clicked node
+        x, y = pygame.mouse.get_pos()
+        selected: Node | None = None
+        for n in self.G.V:
+            if Node.point_inside_node(n, Point(x, y)):
+                if selected is not None:
+                    print("Warning: Please only select a single node.")
+                    return
+                selected = n
+
+        if selected is None:
+            return
+
+        for m in self.G.polygon_map.get(selected.id, []):
+            self.G.remove_node(m)
 
     def _helper_form_polygon_cycle(self) -> None:
         """
