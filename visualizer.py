@@ -12,6 +12,8 @@ from window import Window
 import pygame
 import pygame.mouse
 
+import window
+
 
 class Visualizer:
     def __init__(self) -> None:
@@ -36,6 +38,7 @@ class Visualizer:
         # Animation control
         self.fps = 1
         self.latest_simulation_state: GraphDrawContainer = GraphDrawContainer()
+        self.filled_polygons = False
 
         # The problem that is being solved currently
         self.current_problem: constants.problem_types | None = None
@@ -121,6 +124,7 @@ class Visualizer:
         self.state_machine.set_action(State.ANIMATE, pygame.K_DOWN, self.decrease_fps)
 
         self._forall_states_set_action(pygame.K_MINUS, self.toggle_compact_nodes)
+        self._forall_states_set_action(pygame.K_EQUALS, self.toggle_filled_in_polygon)
 
     
     def _forall_states_set_action(self, key: int, func: Callable) -> None:
@@ -133,6 +137,9 @@ class Visualizer:
 
     def toggle_compact_nodes(self) -> None:
         Node.compact_nodes = not Node.compact_nodes
+
+    def toggle_filled_in_polygon(self) -> None:
+        self.filled_polygons = not self.filled_polygons
 
     def _helper_reset_last_node_selected(self) -> None:
         self.last_node_selected = None
@@ -604,6 +611,20 @@ class Visualizer:
         for p in self.G.polygon_map.values():
             for n in p:
                 n.draw(self.window.screen, constants.PURPLE)
+
+        if self.filled_polygons:
+            # Temporary surface for alpha rendering
+            temp_a_surf = pygame.Surface(
+                (constants.WIN_WIDTH, constants.WIN_HEIGHT),
+                pygame.SRCALPHA
+            )
+
+            for poly in self.G.polygon_map.values():
+                pygame.draw.polygon(temp_a_surf, 
+                                    (189, 43, 255, 30), 
+                                    [(p.p.x, p.p.y) for p in poly])
+
+            self.window.screen.blit(temp_a_surf, (0, 0))
 
         # Render last selected node in different color
         if self.last_node_selected is not None:
